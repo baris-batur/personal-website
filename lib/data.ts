@@ -359,6 +359,7 @@ export const projects: Project[] = [
     tags: ['Gemini', 'TypeScript', 'React', 'PostgreSQL', 'Windows Server'],
     status: 'work',
     feature: true,
+    href: 'https://github.com/ingvildsandven/cv-screening-tool',
     caseFile: {
       problem:
         'A municipality receives far more applications than staff can read closely. Ranking candidates against a posting by hand is slow and inconsistent.',
