@@ -80,16 +80,21 @@ export function CaseFileDossier({ project, onClose }: { project: Project; onClos
                 {project.name}
               </h2>
             </div>
-            {project.href && (
-              <a
-                href={project.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-1.5 border border-border px-3 py-2 font-mono text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-              >
-                {project.href.includes('github') ? 'view source' : 'view project'}
-                <ArrowUpRight className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
+            {(project.href || project.playHref) && (
+              <div className="flex flex-wrap gap-2">
+                {project.href && (
+                  <DossierLink href={project.href}>
+                    {project.playHref
+                      ? 'view project'
+                      : project.href.includes('github')
+                        ? 'view source'
+                        : 'view project'}
+                  </DossierLink>
+                )}
+                {project.playHref && (
+                  <DossierLink href={project.playHref}>play the game</DossierLink>
+                )}
+              </div>
             )}
           </div>
 
@@ -180,6 +185,20 @@ export function CaseFileDossier({ project, onClose }: { project: Project; onClos
         </div>
       </div>
     </div>
+  )
+}
+
+function DossierLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-1.5 border border-border px-3 py-2 font-mono text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+    >
+      {children}
+      <ArrowUpRight className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+    </a>
   )
 }
 
