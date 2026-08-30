@@ -1,30 +1,23 @@
 // ---------------------------------------------------------------------------
-// Telemetry adapter
-// ---------------------------------------------------------------------------
-// Types (MetricId, TelemetrySource, …) are defined here and re-exported from
-// lib/types.ts. Values the UI displays come from a TelemetrySource implementation.
-//
-// The UI talks ONLY to `TelemetrySource`. A live exporter is a new
-// implementation of this contract — never a silent fallback from live →
-// generated series. If live collection fails, the snapshot stays live-sourced
-// (delayed / offline). Development data is a separate mode and is labelled
-// as such.
+// Client-safe telemetry types and helpers.
+// The sample generator and any upstream scrape live in server-only modules.
+// The browser talks only to GET /api/telemetry (same origin).
 // ---------------------------------------------------------------------------
 
 export type MetricId = 'cpu' | 'memory' | 'disk' | 'network' | 'latency' | 'load'
 
 export type TimeRangeId = '1h' | '6h' | '24h' | '7d'
 
-/** Which generator produced the numbers. Never rewrite this on failure. */
+export const TIME_RANGE_IDS: readonly TimeRangeId[] = ['1h', '6h', '24h', '7d']
+
+export function isTimeRangeId(v: unknown): v is TimeRangeId {
+  return v === '1h' || v === '6h' || v === '24h' || v === '7d'
+}
+
 export type TelemetryMode = 'development' | 'live'
-
-/** How fresh a live snapshot is. Ignored when mode is development. */
 export type TelemetryFreshness = 'ok' | 'stale' | 'unavailable'
-
-/** Explicit UI state. Derived — never inferred from “we have numbers”. */
 export type TelemetryStatus = 'live' | 'delayed' | 'offline' | 'development'
 
-/** Live snapshots older than this become DELAYED, then OFFLINE. */
 export const TELEMETRY_STALE_MS = 3 * 60 * 1000
 
 export interface MetricDefinition {
@@ -32,14 +25,13 @@ export interface MetricDefinition {
   label: string
   short: string
   unit: string
-  /** css custom property, kept within the site's signal palette */
   color: string
   decimals: number
   description: string
 }
 
 export interface MetricPoint {
-  t: number // epoch ms
+  t: number
   v: number
 }
 
@@ -52,6 +44,7 @@ export interface MetricSnapshot {
   avg: number
 }
 
+/** Public host label only. Never a real machine name, OS, or region. */
 export interface HostInfo {
   hostname: string
   os: string
@@ -63,26 +56,14 @@ export interface TelemetrySnapshot {
   host: HostInfo
   mode: TelemetryMode
   freshness: TelemetryFreshness
-  /** when this snapshot was produced (client clock, on fetch) */
   generatedAt: number
-  /** when the sanitizer last read upstream; omit for development */
   scrapedAt?: number
-  /** epoch ms after which a live snapshot is DELAYED */
   staleAfter?: number
   range: TimeRangeId
   metrics: Record<MetricId, MetricSnapshot>
+  /** Public adapter label. Never an internal hostname or Prom job. */
+  adapter: string
 }
-
-/** Implement this against a real endpoint later; the UI depends only on this. */
-export interface TelemetrySource {
-  readonly mode: TelemetryMode
-  readonly sourceName: string
-  fetchSnapshot(range: TimeRangeId, now?: number): Promise<TelemetrySnapshot>
-}
-
-/* ------------------------------------------------------------------ */
-/* metric catalogue                                                    */
-/* ------------------------------------------------------------------ */
 
 export const metricDefs: MetricDefinition[] = [
   {
@@ -148,115 +129,14 @@ export const timeRanges: { id: TimeRangeId; label: string; points: number; stepS
   { id: '7d', label: '7D', points: 84, stepSeconds: 7200 },
 ]
 
-/* ------------------------------------------------------------------ */
-/* deterministic sample generator                                      */
-/* ------------------------------------------------------------------ */
-
-type Shape = { base: number; min: number; max: number; volatility: number; spike: number }
-
-const shapes: Record<MetricId, Shape> = {
-  cpu: { base: 14, min: 3, max: 82, volatility: 4, spike: 0.06 },
-  memory: { base: 47, min: 38, max: 74, volatility: 1.6, spike: 0.03 },
-  disk: { base: 63, min: 61, max: 68, volatility: 0.35, spike: 0.01 },
-  network: { base: 2.2, min: 0.1, max: 46, volatility: 2.6, spike: 0.08 },
-  latency: { base: 26, min: 12, max: 140, volatility: 6, spike: 0.05 },
-  load: { base: 0.35, min: 0.05, max: 2.8, volatility: 0.12, spike: 0.05 },
+export const PUBLIC_HOST: HostInfo = {
+  hostname: 'lab',
+  os: '',
+  region: '',
+  uptimeSeconds: 0,
 }
 
-function mulberry32(seed: number) {
-  return function () {
-    seed |= 0
-    seed = (seed + 0x6d2b79f5) | 0
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-function hashSeed(s: string) {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
-}
-
-function round(v: number, decimals: number) {
-  const f = 10 ** decimals
-  return Math.round(v * f) / f
-}
-
-function buildMetric(id: MetricId, range: TimeRangeId, now: number): MetricSnapshot {
-  const shape = shapes[id]
-  const def = metricDefs.find((d) => d.id === id)!
-  const cfg = timeRanges.find((r) => r.id === range)!
-  const rand = mulberry32(hashSeed(`${id}:${range}`))
-
-  const raw: number[] = []
-  let v = shape.base
-  for (let i = 0; i < cfg.points; i++) {
-    v += (rand() * 2 - 1) * shape.volatility
-    v += (shape.base - v) * 0.06 // gentle mean reversion
-    if (rand() < shape.spike) v += (shape.max - shape.base) * (0.4 + rand() * 0.5)
-    v = Math.min(shape.max, Math.max(shape.min, v))
-    raw.push(v)
-  }
-
-  const points: MetricPoint[] = raw.map((val, i) => ({
-    t: now - (cfg.points - 1 - i) * cfg.stepSeconds * 1000,
-    v: round(val, def.decimals),
-  }))
-
-  const vals = points.map((p) => p.v)
-  const sum = vals.reduce((a, b) => a + b, 0)
-  return {
-    id,
-    points,
-    current: vals[vals.length - 1],
-    min: round(Math.min(...vals), def.decimals),
-    max: round(Math.max(...vals), def.decimals),
-    avg: round(sum / vals.length, def.decimals),
-  }
-}
-
-class DevelopmentTelemetrySource implements TelemetrySource {
-  readonly mode = 'development' as const
-  readonly sourceName = 'sample-generator'
-
-  async fetchSnapshot(range: TimeRangeId, now: number = Date.now()): Promise<TelemetrySnapshot> {
-    const metrics = {} as Record<MetricId, MetricSnapshot>
-    for (const def of metricDefs) metrics[def.id] = buildMetric(def.id, range, now)
-
-    return {
-      host: {
-        hostname: 'nyx',
-        os: 'Debian 12 (bookworm)',
-        region: 'Trondheim, NO',
-        // generated value — UI must label this DEVELOPMENT DATA, not uptime
-        uptimeSeconds: 6 * 86400 + 4 * 3600 + 37 * 60,
-      },
-      mode: this.mode,
-      freshness: 'ok',
-      generatedAt: now,
-      range,
-      metrics,
-    }
-  }
-}
-
-/**
- * The single source the UI consumes.
- *
- * When swapping in a live implementation, do it here — and ONLY here.
- * Do not catch a live failure and construct DevelopmentTelemetrySource.
- * Delayed/offline are the honest failure states.
- */
-export const telemetry: TelemetrySource = new DevelopmentTelemetrySource()
-
-/* ------------------------------------------------------------------ */
-/* formatting helpers                                                  */
-/* ------------------------------------------------------------------ */
+export const PUBLIC_ADAPTER = 'sanitizer'
 
 export function formatMetric(def: MetricDefinition, v: number): string {
   const n = v.toFixed(def.decimals)
@@ -303,10 +183,6 @@ export const telemetryStatusCopy: Record<
   development: { glyph: '◇', label: 'DEVELOPMENT DATA', toneClass: 'text-signal-amber' },
 }
 
-/**
- * Derive the badge. A live source cannot become `development` — not on
- * timeout, not on empty metrics, not because a sample generator exists.
- */
 export function resolveTelemetryStatus(args: {
   sourceMode: TelemetryMode
   snap: TelemetrySnapshot | null
@@ -340,4 +216,48 @@ export function telemetryStatusDetail(
     return formatLastUpdate(snap.scrapedAt ?? snap.generatedAt, now)
   }
   return `updated ${formatClock(snap.generatedAt)}`
+}
+
+export async function fetchPublicSnapshot(range: TimeRangeId): Promise<TelemetrySnapshot> {
+  if (!isTimeRangeId(range)) throw new Error('unavailable')
+  const res = await fetch(`/api/telemetry?range=${range}`, {
+    method: 'GET',
+    headers: { accept: 'application/json' },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error('unavailable')
+  const body: unknown = await res.json()
+  const snap = asTelemetrySnapshot(body)
+  if (!snap) throw new Error('unavailable')
+  return snap
+}
+
+function asTelemetrySnapshot(body: unknown): TelemetrySnapshot | null {
+  if (!body || typeof body !== 'object') return null
+  const o = body as Record<string, unknown>
+  if (o.mode !== 'development' && o.mode !== 'live') return null
+  if (o.freshness !== 'ok' && o.freshness !== 'stale' && o.freshness !== 'unavailable') return null
+  if (!isTimeRangeId(o.range)) return null
+  if (typeof o.generatedAt !== 'number' || !Number.isFinite(o.generatedAt)) return null
+  if (!o.metrics || typeof o.metrics !== 'object') return null
+  const host = o.host
+  if (!host || typeof host !== 'object') return null
+  const h = host as Record<string, unknown>
+  if (typeof h.hostname !== 'string' || typeof h.uptimeSeconds !== 'number') return null
+  return {
+    host: {
+      hostname: h.hostname,
+      os: typeof h.os === 'string' ? h.os : '',
+      region: typeof h.region === 'string' ? h.region : '',
+      uptimeSeconds: h.uptimeSeconds,
+    },
+    mode: o.mode,
+    freshness: o.freshness,
+    generatedAt: o.generatedAt,
+    scrapedAt: typeof o.scrapedAt === 'number' ? o.scrapedAt : undefined,
+    staleAfter: typeof o.staleAfter === 'number' ? o.staleAfter : undefined,
+    range: o.range,
+    metrics: o.metrics as TelemetrySnapshot['metrics'],
+    adapter: typeof o.adapter === 'string' && o.adapter.length < 32 ? o.adapter : PUBLIC_ADAPTER,
+  }
 }
