@@ -31,11 +31,7 @@ function usePrefersReducedMotion() {
 function useCountUp(to: number, run: boolean, reduced: boolean, duration = 900) {
   const [n, setN] = useState(0)
   useEffect(() => {
-    if (!run) return
-    if (reduced) {
-      setN(to)
-      return
-    }
+    if (!run || reduced) return
     let raf = 0
     const start = performance.now()
     const tick = (t: number) => {
@@ -47,6 +43,7 @@ function useCountUp(to: number, run: boolean, reduced: boolean, duration = 900) 
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [to, run, reduced, duration])
+  if (reduced) return run ? to : 0
   return n
 }
 
@@ -90,18 +87,31 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (reduced) return
       const rect = e.currentTarget.getBoundingClientRect()
-      nextRef.current = {
+      const pt = {
         x: ((e.clientX - rect.left) / rect.width) * VBW,
         y: ((e.clientY - rect.top) / rect.height) * VBH,
       }
+      nextRef.current = pt
       if (rafRef.current == null) {
         rafRef.current = requestAnimationFrame(() => {
           rafRef.current = null
-          setPointer(nextRef.current)
+          const next = nextRef.current
+          if (!next) return
+          setPointer(next)
+          let best = base[0].id
+          let bestD = Infinity
+          for (const node of base) {
+            const d = (node.x - next.x) ** 2 + (node.y - next.y) ** 2
+            if (d < bestD) {
+              bestD = d
+              best = node.id
+            }
+          }
+          setHeldId(best)
         })
       }
     },
-    [reduced],
+    [reduced, base],
   )
 
   const onLeave = useCallback(() => {
@@ -125,29 +135,9 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
     }
   }
 
-  // Nearest node to the cursor. Leaving the frame keeps the last one held.
-  const nearestId = useMemo(() => {
-    if (!pointer) return null
-    let best = base[0].id
-    let bestD = Infinity
-    for (const node of base) {
-      const d = (node.x - pointer.x) ** 2 + (node.y - pointer.y) ** 2
-      if (d < bestD) {
-        bestD = d
-        best = node.id
-      }
-    }
-    return best
-  }, [pointer, base])
-
-  useEffect(() => {
-    if (nearestId) setHeldId(nearestId)
-  }, [nearestId])
-
-  const activeId = pinned ?? nearestId ?? heldId
+  // Nearest node is latched in the pointer handler so leaving the frame keeps it.
+  const activeId = pinned ?? heldId
   const active = systemNodes.find((n) => n.id === activeId) ?? systemNodes[0]
-  const activeBase = base.find((n) => n.id === activeId)!
-  const activeShift = shift(activeBase.depth)
   const centerShift = shift(0.25)
 
   // Clamp the cursor-tracking endpoint inside the frame.

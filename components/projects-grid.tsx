@@ -5,7 +5,6 @@ import { projects, projectStatusColor, type Project } from '@/lib/data'
 import { Section } from '@/components/section'
 import { SectionHeading } from '@/components/section-heading'
 import { Reveal } from '@/components/reveal'
-import { ArrowUpRight } from '@/components/icons'
 import { CaseFileDossier } from '@/components/case-file-dossier'
 
 export function ProjectsGrid() {
@@ -35,7 +34,7 @@ export function ProjectsGrid() {
           const span = i === 0 ? 'md:col-span-4' : i === 1 ? 'md:col-span-2' : i === 3 ? 'md:col-span-4' : 'md:col-span-2'
           return (
             <Reveal key={p.id} delay={i * 60} className={span}>
-              <CaseFile p={p} n={i + 2} onOpen={() => setOpen(p)} />
+              <CaseFile p={p} onOpen={() => setOpen(p)} />
             </Reveal>
           )
         })}
@@ -163,7 +162,7 @@ function FeatureFile({ p, onOpen }: { p: Project; onOpen: () => void }) {
 }
 
 /* A compact case file — problem-forward, opens the full report on click. */
-function CaseFile({ p, n, onOpen }: { p: Project; n: number; onOpen: () => void }) {
+function CaseFile({ p, onOpen }: { p: Project; onOpen: () => void }) {
   return (
     <button
       onClick={onOpen}
