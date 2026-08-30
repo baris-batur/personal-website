@@ -662,7 +662,7 @@ export const experience: Experience[] = [
   {
     ts: 'Jul 2026 – now',
     org: 'DFØ · Norwegian Agency for Public and Financial Management',
-    role: 'DevOps Engineer (Cloud) & Systems Administrator (HR/Cloud)',
+    role: 'Systems Developer (DevOps/Cloud) & Systems Administrator (HR/Cloud)',
     level: 'WORK',
     lines: [
       'Broad DevOps work keeping the platform behind the agency’s payroll service healthy, from cluster management and observability to secrets and automated deployments.',
