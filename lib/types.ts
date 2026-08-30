@@ -111,6 +111,8 @@ export type Project = {
   tags: string[]
   status: ProjectStatus
   href?: string
+  /** Optional playable build (e.g. itch.io). Shown beside href as “play the game”. */
+  playHref?: string
   feature?: boolean
   caseFile: CaseFile
 }
