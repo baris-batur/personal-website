@@ -1,20 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { projects, type Project } from '@/lib/data'
+import { projects, projectStatusColor, type Project } from '@/lib/data'
 import { Section } from '@/components/section'
 import { SectionHeading } from '@/components/section-heading'
 import { Reveal } from '@/components/reveal'
 import { ArrowUpRight } from '@/components/icons'
 import { CaseFileDossier } from '@/components/case-file-dossier'
-
-const statusTone: Record<string, string> = {
-  work: 'var(--signal-green)',
-  collab: 'var(--signal-cyan)',
-  experimental: 'var(--signal-amber)',
-  jam: 'var(--signal-amber)',
-  personal: 'var(--foreground)',
-}
 
 export function ProjectsGrid() {
   const [open, setOpen] = useState<Project | null>(null)
@@ -66,7 +58,7 @@ function InspectCue() {
 function StatusTag({ status }: { status: Project['status'] }) {
   return (
     <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-      <span className="h-1.5 w-1.5 rounded-full" style={{ background: statusTone[status] }} />
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: projectStatusColor[status] }} />
       {status}
     </span>
   )

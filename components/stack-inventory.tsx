@@ -1,16 +1,9 @@
 'use client'
 
-import { stack } from '@/lib/data'
+import { stack, skillLevelBars, type Skill } from '@/lib/data'
 import { Section } from '@/components/section'
 import { SectionHeading } from '@/components/section-heading'
 import { Reveal } from '@/components/reveal'
-
-const levelSegments: Record<string, number> = {
-  core: 4,
-  strong: 3,
-  familiar: 2,
-  learning: 1,
-}
 
 export function StackInventory() {
   return (
@@ -41,8 +34,8 @@ export function StackInventory() {
   )
 }
 
-function StackRowItem({ row, index }: { row: (typeof stack)[number]; index: number }) {
-  const filled = levelSegments[row.level]
+function StackRowItem({ row, index }: { row: Skill; index: number }) {
+  const filled = skillLevelBars[row.level]
 
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-b border-border py-4 transition-colors hover:bg-card/40 md:grid-cols-12 md:items-center md:py-3.5">

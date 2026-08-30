@@ -5,8 +5,10 @@ import {
   homelabNodes,
   homelabEdges,
   homelabTierLabels,
+  homelabTierColor as tierColor,
+  homelabPlanColor as planColor,
+  homelabPlanLabel as planLabel,
   type HomelabTier,
-  type HomelabPlan,
 } from '@/lib/data'
 import { Section } from '@/components/section'
 import { SectionHeading } from '@/components/section-heading'
@@ -14,27 +16,6 @@ import { Reveal } from '@/components/reveal'
 
 const NW = 132
 const NH = 50
-
-const tierColor: Record<HomelabTier, string> = {
-  edge: 'var(--signal-cyan)',
-  control: 'var(--signal-amber)',
-  workload: 'var(--signal-green)',
-  storage: 'var(--foreground)',
-}
-
-const planColor: Record<HomelabPlan, string> = {
-  planned: 'var(--signal-amber)',
-  idea: 'var(--muted-foreground)',
-  external: 'var(--signal-cyan)',
-  live: 'var(--signal-green)',
-}
-
-const planLabel: Record<HomelabPlan, string> = {
-  planned: 'planned',
-  idea: 'idea · maybe',
-  external: 'external',
-  live: 'live',
-}
 
 export function HomelabTopology() {
   const [hovered, setHovered] = useState<string | null>(null)

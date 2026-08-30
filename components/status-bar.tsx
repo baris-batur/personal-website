@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { profile } from '@/lib/data'
 
 const nav = [
   { id: 'system', label: 'system' },
@@ -51,7 +52,7 @@ export function StatusBar() {
           <span className="relative flex h-2 w-2">
             <span className="status-dot absolute inline-flex h-2 w-2 rounded-full bg-signal-green" />
           </span>
-          <span className="font-mono text-xs font-medium tracking-tight">baris-batur</span>
+          <span className="font-mono text-xs font-medium tracking-tight">{profile.slug}</span>
         </a>
 
         <span className="hidden font-mono text-[10px] uppercase tracking-widest text-muted-foreground sm:inline">

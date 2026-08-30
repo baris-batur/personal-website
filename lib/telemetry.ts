@@ -1,6 +1,9 @@
 // ---------------------------------------------------------------------------
 // Telemetry adapter
 // ---------------------------------------------------------------------------
+// Types (MetricId, TelemetrySource, …) are defined here and re-exported from
+// lib/types.ts. Values the UI displays come from a TelemetrySource implementation.
+//
 // A typed interface over a personal server's metrics. The UI talks ONLY to the
 // `TelemetrySource` contract below, so a real exporter (node_exporter /
 // Prometheus / a small /api/metrics route) can be dropped in later WITHOUT

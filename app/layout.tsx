@@ -1,6 +1,7 @@
-import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import { Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import { profile } from '@/lib/data'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
@@ -16,9 +17,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Baris Batur — Developer · DevOps & AI',
-  description:
-    'Developer from Trondheim building fullstack systems, CI/CD pipelines, and ML tooling — from Postgres and Docker to self-hosted LLMs. A portfolio designed like instrument software.',
+  title: profile.seoTitle,
+  description: profile.seoDescription,
   generator: 'v0.app',
   icons: {
     icon: [
