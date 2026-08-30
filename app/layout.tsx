@@ -19,7 +19,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: profile.seoTitle,
   description: profile.seoDescription,
-  generator: 'v0.app',
+  generator: 'next.js',
   icons: {
     icon: [
       { url: '/icon.png', type: 'image/png' },
