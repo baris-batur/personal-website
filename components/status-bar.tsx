@@ -13,17 +13,24 @@ const nav = [
 ]
 
 export function StatusBar() {
-  const [time, setTime] = useState('--:--:--')
+  const [clock, setClock] = useState({ time: '--:--:--', zone: '' })
   const [active, setActive] = useState('system')
 
   useEffect(() => {
-    const tick = () =>
-      setTime(
-        new Date().toLocaleTimeString('en-US', {
-          hour12: false,
-          timeZone: 'UTC',
-        }),
-      )
+    const tick = () => {
+      const now = new Date()
+      const time = now.toLocaleTimeString('en-GB', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+      const zone =
+        new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+          .formatToParts(now)
+          .find((p) => p.type === 'timeZoneName')?.value ?? 'local'
+      setClock({ time, zone })
+    }
     tick()
     const t = setInterval(tick, 1000)
     return () => clearInterval(t)
@@ -77,8 +84,10 @@ export function StatusBar() {
 
         <div className="ml-auto flex items-center gap-3 md:ml-0">
           <span className="font-mono text-xs text-muted-foreground font-numeric">
-            {time}
-            <span className="ml-1 text-[9px] text-muted-foreground/60">UTC</span>
+            {clock.time}
+            {clock.zone && (
+              <span className="ml-1 text-[9px] text-muted-foreground/60">{clock.zone}</span>
+            )}
           </span>
           <a
             href="#log"

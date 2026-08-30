@@ -6,6 +6,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Let the LAN host (phone / other machine) talk to Next.js HMR in `next dev`.
+  allowedDevOrigins: ['192.168.10.82'],
   async headers() {
     return [
       {

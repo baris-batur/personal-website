@@ -65,6 +65,7 @@ type Pt = { x: number; y: number }
 function ControlPlane({ reduced }: { reduced: boolean }) {
   const [pointer, setPointer] = useState<Pt | null>(null)
   const [pinned, setPinned] = useState<string | null>(null)
+  const [heldId, setHeldId] = useState(systemNodes[0].id)
   const rafRef = useRef<number | null>(null)
   const nextRef = useRef<Pt | null>(null)
 
@@ -124,7 +125,7 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
     }
   }
 
-  // Nearest node to the cursor (falls back to pinned, then first).
+  // Nearest node to the cursor. Leaving the frame keeps the last one held.
   const nearestId = useMemo(() => {
     if (!pointer) return null
     let best = base[0].id
@@ -139,7 +140,11 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
     return best
   }, [pointer, base])
 
-  const activeId = pinned ?? nearestId ?? systemNodes[0].id
+  useEffect(() => {
+    if (nearestId) setHeldId(nearestId)
+  }, [nearestId])
+
+  const activeId = pinned ?? nearestId ?? heldId
   const active = systemNodes.find((n) => n.id === activeId) ?? systemNodes[0]
   const activeBase = base.find((n) => n.id === activeId)!
   const activeShift = shift(activeBase.depth)
@@ -301,7 +306,7 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
         <span className="text-border">::</span>
         <span className="truncate text-muted-foreground">{active.detail}</span>
         <span className="ml-auto shrink-0 text-[10px] uppercase tracking-widest text-muted-foreground/70">
-          {pinned ? 'pinned' : 'hover'}
+          {pinned ? 'pinned' : pointer ? 'hover' : 'hold'}
         </span>
       </div>
     </div>
