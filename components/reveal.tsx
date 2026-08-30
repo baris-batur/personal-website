@@ -1,6 +1,6 @@
 'use client'
 
-import type { ElementType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useInView } from '@/hooks/use-in-view'
 
 export function Reveal({
@@ -14,11 +14,11 @@ export function Reveal({
   className?: string
   as?: 'div' | 'li' | 'tr' | 'section'
 }) {
-  const { ref, inView } = useInView<HTMLElement>()
-  const Comp = Tag as ElementType
+  const { ref, inView } = useInView()
+  const Comp = Tag as any
   return (
     <Comp
-      ref={ref}
+      ref={ref as any}
       className={`reveal ${inView ? 'in' : ''} ${className}`}
       style={{ animationDelay: `${delay}ms` }}
     >
