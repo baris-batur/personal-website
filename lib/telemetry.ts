@@ -4,22 +4,28 @@
 // Types (MetricId, TelemetrySource, …) are defined here and re-exported from
 // lib/types.ts. Values the UI displays come from a TelemetrySource implementation.
 //
-// A typed interface over a personal server's metrics. The UI talks ONLY to the
-// `TelemetrySource` contract below, so a real exporter (node_exporter /
-// Prometheus / a small /api/metrics route) can be dropped in later WITHOUT
-// touching the component — just implement `TelemetrySource` and swap the
-// exported `telemetry` singleton.
-//
-// Nothing here is presented as live. The bundled source is a deterministic
-// SAMPLE generator (mode: 'sample'); the UI labels every value accordingly and
-// never implies a real measurement.
+// The UI talks ONLY to `TelemetrySource`. A live exporter is a new
+// implementation of this contract — never a silent fallback from live →
+// generated series. If live collection fails, the snapshot stays live-sourced
+// (delayed / offline). Development data is a separate mode and is labelled
+// as such.
 // ---------------------------------------------------------------------------
 
 export type MetricId = 'cpu' | 'memory' | 'disk' | 'network' | 'latency' | 'load'
 
 export type TimeRangeId = '1h' | '6h' | '24h' | '7d'
 
-export type TelemetryMode = 'sample' | 'live'
+/** Which generator produced the numbers. Never rewrite this on failure. */
+export type TelemetryMode = 'development' | 'live'
+
+/** How fresh a live snapshot is. Ignored when mode is development. */
+export type TelemetryFreshness = 'ok' | 'stale' | 'unavailable'
+
+/** Explicit UI state. Derived — never inferred from “we have numbers”. */
+export type TelemetryStatus = 'live' | 'delayed' | 'offline' | 'development'
+
+/** Live snapshots older than this become DELAYED, then OFFLINE. */
+export const TELEMETRY_STALE_MS = 3 * 60 * 1000
 
 export interface MetricDefinition {
   id: MetricId
@@ -56,8 +62,13 @@ export interface HostInfo {
 export interface TelemetrySnapshot {
   host: HostInfo
   mode: TelemetryMode
+  freshness: TelemetryFreshness
   /** when this snapshot was produced (client clock, on fetch) */
   generatedAt: number
+  /** when the sanitizer last read upstream; omit for development */
+  scrapedAt?: number
+  /** epoch ms after which a live snapshot is DELAYED */
+  staleAfter?: number
   range: TimeRangeId
   metrics: Record<MetricId, MetricSnapshot>
 }
@@ -209,8 +220,8 @@ function buildMetric(id: MetricId, range: TimeRangeId, now: number): MetricSnaps
   }
 }
 
-class SampleTelemetrySource implements TelemetrySource {
-  readonly mode = 'sample' as const
+class DevelopmentTelemetrySource implements TelemetrySource {
+  readonly mode = 'development' as const
   readonly sourceName = 'sample-generator'
 
   async fetchSnapshot(range: TimeRangeId, now: number = Date.now()): Promise<TelemetrySnapshot> {
@@ -222,10 +233,11 @@ class SampleTelemetrySource implements TelemetrySource {
         hostname: 'nyx',
         os: 'Debian 12 (bookworm)',
         region: 'Trondheim, NO',
-        // sample value — clearly labelled in the UI, not a real uptime claim
+        // generated value — UI must label this DEVELOPMENT DATA, not uptime
         uptimeSeconds: 6 * 86400 + 4 * 3600 + 37 * 60,
       },
       mode: this.mode,
+      freshness: 'ok',
       generatedAt: now,
       range,
       metrics,
@@ -234,11 +246,13 @@ class SampleTelemetrySource implements TelemetrySource {
 }
 
 /**
- * The single source the UI consumes. Replace this line with a live
- * implementation (e.g. `new PrometheusSource('/api/metrics')`) once a real
- * exporter is wired up — no component changes required.
+ * The single source the UI consumes.
+ *
+ * When swapping in a live implementation, do it here — and ONLY here.
+ * Do not catch a live failure and construct DevelopmentTelemetrySource.
+ * Delayed/offline are the honest failure states.
  */
-export const telemetry: TelemetrySource = new SampleTelemetrySource()
+export const telemetry: TelemetrySource = new DevelopmentTelemetrySource()
 
 /* ------------------------------------------------------------------ */
 /* formatting helpers                                                  */
@@ -268,4 +282,62 @@ export function formatUptime(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60)
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d}d ${p(h)}h ${p(m)}m`
+}
+
+export function formatLastUpdate(ts: number, now: number): string {
+  const s = Math.max(0, Math.floor((now - ts) / 1000))
+  if (s < 60) return `last update ${s}s ago`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `last update ${m}m ago`
+  const h = Math.floor(m / 60)
+  return `last update ${h}h ago`
+}
+
+export const telemetryStatusCopy: Record<
+  TelemetryStatus,
+  { glyph: string; label: string; toneClass: string }
+> = {
+  live: { glyph: '●', label: 'LIVE', toneClass: 'text-signal-green' },
+  delayed: { glyph: '◐', label: 'DELAYED', toneClass: 'text-signal-amber' },
+  offline: { glyph: '○', label: 'OFFLINE', toneClass: 'text-muted-foreground' },
+  development: { glyph: '◇', label: 'DEVELOPMENT DATA', toneClass: 'text-signal-amber' },
+}
+
+/**
+ * Derive the badge. A live source cannot become `development` — not on
+ * timeout, not on empty metrics, not because a sample generator exists.
+ */
+export function resolveTelemetryStatus(args: {
+  sourceMode: TelemetryMode
+  snap: TelemetrySnapshot | null
+  fetchFailed: boolean
+  now?: number
+}): TelemetryStatus {
+  if (args.sourceMode === 'development') return 'development'
+
+  const snap = args.snap
+  if (!snap || snap.mode !== 'live') return 'offline'
+
+  const now = args.now ?? Date.now()
+  const staleAfter = snap.staleAfter ?? snap.generatedAt + TELEMETRY_STALE_MS
+  const expired = now > staleAfter
+
+  if (snap.freshness === 'unavailable') return 'offline'
+  if (args.fetchFailed && expired) return 'offline'
+  if (args.fetchFailed || snap.freshness === 'stale' || expired) return 'delayed'
+  return 'live'
+}
+
+export function telemetryStatusDetail(
+  status: TelemetryStatus,
+  snap: TelemetrySnapshot | null,
+  now: number,
+): string | null {
+  if (status === 'offline') return 'telemetry unavailable'
+  if (status === 'development') return null
+  if (!snap) return null
+  if (status === 'delayed') {
+    return formatLastUpdate(snap.scrapedAt ?? snap.generatedAt, now)
+  }
+  return `updated ${formatClock(snap.generatedAt)}`
 }
