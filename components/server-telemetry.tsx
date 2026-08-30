@@ -6,13 +6,16 @@ import {
   metricDefs,
   timeRanges,
   formatMetric,
-  formatClock,
   formatAxis,
   formatUptime,
+  resolveTelemetryStatus,
+  telemetryStatusCopy,
+  telemetryStatusDetail,
   type MetricId,
   type TimeRangeId,
   type MetricSnapshot,
   type TelemetrySnapshot,
+  type TelemetryStatus,
 } from '@/lib/telemetry'
 import { Sparkline } from '@/components/charts'
 import { Section } from '@/components/section'
@@ -25,80 +28,98 @@ export function ServerTelemetry() {
   const [range, setRange] = useState<TimeRangeId>('24h')
   const [metricId, setMetricId] = useState<MetricId>('cpu')
   const [snap, setSnap] = useState<TelemetrySnapshot | null>(null)
+  const [fetchFailed, setFetchFailed] = useState(false)
   const [hover, setHover] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
 
-  // Fetch a fresh snapshot whenever the range changes. Swapping `telemetry`
-  // for a live source (in lib/telemetry.ts) requires no change here.
   useEffect(() => {
     let cancelled = false
-    telemetry.fetchSnapshot(range).then((s) => {
-      if (!cancelled) {
+    telemetry.fetchSnapshot(range).then(
+      (s) => {
+        if (cancelled) return
         setSnap(s)
+        setFetchFailed(false)
         setHover(null)
-      }
-    })
+      },
+      () => {
+        if (cancelled) return
+        // Keep the last snapshot. Never substitute development data.
+        setFetchFailed(true)
+      },
+    )
     return () => {
       cancelled = true
     }
   }, [range])
 
+  const viewSnap = snap?.range === range ? snap : null
+  const status = resolveTelemetryStatus({
+    sourceMode: telemetry.mode,
+    snap: viewSnap,
+    fetchFailed,
+    now,
+  })
+
+  useEffect(() => {
+    if (telemetry.mode !== 'live') return
+    const id = setInterval(() => setNow(Date.now()), 15_000)
+    return () => clearInterval(id)
+  }, [])
+
   const def = metricDefs.find((d) => d.id === metricId)!
-  const metric = snap?.metrics[metricId] ?? null
+  const metric = viewSnap?.metrics[metricId] ?? null
   const n = metric?.points.length ?? 0
   const activeIndex = hover ?? (n > 0 ? n - 1 : 0)
   const activePoint = metric?.points[activeIndex] ?? null
-  const isLive = snap?.mode === 'live'
   const hovering = hover !== null
+  const showSeries = status !== 'offline'
+  const provenance = provenanceLine(status)
 
   return (
     <Section id="telemetry" index="04" label="telemetry" field="grid">
       <SectionHeading
         kicker="self-hosted infrastructure"
         title="Server telemetry"
-        spec="fig.03 · sample"
+        spec={`fig.03 · ${status === 'development' ? 'development' : status}`}
       >
-        A monitoring panel I built for my own box, reading through a typed telemetry adapter.
-        It renders <span className="text-primary">clearly-labelled sample data</span> today and is
-        wired to swap in a real exporter without touching the interface.
+        {telemetry.mode === 'development' ? (
+          <>
+            A monitoring panel I built for my own box, reading through a typed telemetry adapter. It
+            renders <span className="text-primary">development data</span> — generated locally, never
+            a live measurement.
+          </>
+        ) : (
+          <>
+            A monitoring panel I built for my own box, reading through a typed telemetry adapter.
+            Freshness is labelled explicitly: live, delayed, or offline. A failed scrape never
+            falls back to generated series.
+          </>
+        )}
       </SectionHeading>
 
       <Reveal>
         <figure className="plate bg-card/40">
-          {/* host / mode header */}
           <figcaption className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-3 font-mono text-[11px] text-muted-foreground">
               <span className="text-primary">◢</span>
               <span className="text-foreground">
-                {snap?.host.hostname ?? '—'}
+                {viewSnap?.host.hostname ?? '—'}
                 <span className="text-muted-foreground">@self-hosted</span>
               </span>
               <span className="hidden sm:inline text-border">│</span>
-              <span className="hidden sm:inline">{snap?.host.os ?? 'connecting…'}</span>
+              <span className="hidden sm:inline">
+                {viewSnap?.host.os ?? (status === 'offline' ? 'unavailable' : 'connecting…')}
+              </span>
               <span className="hidden md:inline text-border">│</span>
-              <span className="hidden md:inline">{snap?.host.region ?? ''}</span>
+              <span className="hidden md:inline">{viewSnap?.host.region ?? ''}</span>
             </div>
 
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em]">
-              <span
-                className={`flex items-center gap-1.5 ${isLive ? 'text-signal-green' : 'text-signal-amber'}`}
-                title={isLive ? 'connected to a live source' : 'sample data — not connected to a live source'}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-signal-green' : 'bg-signal-amber'} ${inView ? 'animate-pulse' : ''}`}
-                  aria-hidden
-                />
-                {isLive ? 'live' : 'sample · not live'}
-              </span>
-              <span className="hidden text-muted-foreground sm:inline">
-                updated {snap ? formatClock(snap.generatedAt) : '--:--:--'}
-              </span>
-            </div>
+            <TelemetryStatusBadge status={status} snap={viewSnap} now={now} pulse={inView} />
           </figcaption>
 
-          {/* metric selector tiles */}
           <div ref={ref} className="grid grid-cols-2 border-b border-border sm:grid-cols-3 lg:grid-cols-6">
             {metricDefs.map((d, i) => {
-              const ms = snap?.metrics[d.id] ?? null
+              const ms = showSeries ? (viewSnap?.metrics[d.id] ?? null) : null
               const selected = d.id === metricId
               return (
                 <button
@@ -160,10 +181,8 @@ export function ServerTelemetry() {
             })}
           </div>
 
-          {/* main chart + stats */}
           <div className="grid grid-cols-1 lg:grid-cols-12">
             <div className="border-b border-border p-5 lg:col-span-8 lg:border-b-0 lg:border-r">
-              {/* chart header: metric + range selector */}
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 font-mono text-xs">
                   <span className="h-2 w-2 rounded-sm" style={{ background: def.color }} aria-hidden />
@@ -193,7 +212,7 @@ export function ServerTelemetry() {
                 </div>
               </div>
 
-              {metric ? (
+              {metric && showSeries ? (
                 <MetricChart
                   metric={metric}
                   range={range}
@@ -203,15 +222,15 @@ export function ServerTelemetry() {
                   animate={inView}
                   activeIndex={activeIndex}
                   onHover={setHover}
+                  status={status}
                 />
               ) : (
                 <div className="flex h-[220px] items-center justify-center font-mono text-xs text-muted-foreground">
-                  connecting to telemetry adapter…
+                  {status === 'offline' ? 'telemetry unavailable' : 'connecting to telemetry adapter…'}
                 </div>
               )}
             </div>
 
-            {/* stats column */}
             <div className="flex flex-col gap-5 p-5 lg:col-span-4">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -219,20 +238,20 @@ export function ServerTelemetry() {
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5">
                   <span className="font-mono text-3xl tabular-nums text-foreground">
-                    {activePoint ? activePoint.v.toFixed(def.decimals) : '––'}
+                    {metric && showSeries && activePoint ? activePoint.v.toFixed(def.decimals) : '––'}
                   </span>
                   <span className="font-mono text-sm text-muted-foreground">{def.unit || 'load'}</span>
                 </div>
                 <div className="mt-1 font-mono text-[10px] text-muted-foreground">
-                  {activePoint ? `@ ${formatAxis(activePoint.t, range)}` : ''}{' '}
-                  {hovering ? '· historical' : isLive ? '· latest' : '· sample'}
+                  {metric && showSeries && activePoint ? `@ ${formatAxis(activePoint.t, range)}` : ''}{' '}
+                  {seriesKindLabel(status, hovering)}
                 </div>
               </div>
 
               <dl className="grid grid-cols-3 gap-px overflow-hidden rounded border border-border bg-border">
-                <Stat label="min" value={metric ? metric.min.toFixed(def.decimals) : '––'} />
-                <Stat label="avg" value={metric ? metric.avg.toFixed(def.decimals) : '––'} />
-                <Stat label="max" value={metric ? metric.max.toFixed(def.decimals) : '––'} />
+                <Stat label="min" value={metric && showSeries ? metric.min.toFixed(def.decimals) : '––'} />
+                <Stat label="avg" value={metric && showSeries ? metric.avg.toFixed(def.decimals) : '––'} />
+                <Stat label="max" value={metric && showSeries ? metric.max.toFixed(def.decimals) : '––'} />
               </dl>
 
               <p className="text-pretty text-xs leading-relaxed text-muted-foreground">
@@ -241,29 +260,83 @@ export function ServerTelemetry() {
             </div>
           </div>
 
-          {/* footer: uptime + provenance */}
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
               <span>
                 uptime{' '}
                 <span className="text-foreground normal-case tracking-normal">
-                  {snap ? formatUptime(snap.host.uptimeSeconds) : '—'}
+                  {viewSnap && showSeries ? formatUptime(viewSnap.host.uptimeSeconds) : '—'}
                 </span>
               </span>
               <span>
                 load{' '}
                 <span className="text-foreground normal-case tracking-normal tabular-nums">
-                  {snap ? snap.metrics.load.current.toFixed(2) : '—'}
+                  {viewSnap && showSeries ? viewSnap.metrics.load.current.toFixed(2) : '—'}
                 </span>
               </span>
             </div>
-            <span className="text-signal-amber">
-              sample data · adapter: {telemetry.sourceName}
+            <span
+              className={
+                status === 'live'
+                  ? 'text-signal-green'
+                  : status === 'offline'
+                    ? 'text-muted-foreground'
+                    : 'text-signal-amber'
+              }
+            >
+              {provenance}
             </span>
           </div>
         </figure>
       </Reveal>
     </Section>
+  )
+}
+
+function provenanceLine(status: TelemetryStatus): string {
+  if (status === 'offline') return 'telemetry unavailable'
+  if (status === 'development') return `development data · adapter: ${telemetry.sourceName}`
+  if (status === 'delayed') return `delayed · adapter: ${telemetry.sourceName}`
+  return `adapter: ${telemetry.sourceName}`
+}
+
+function seriesKindLabel(status: TelemetryStatus, hovering: boolean): string {
+  if (hovering) return '· historical'
+  if (status === 'live') return '· latest'
+  if (status === 'delayed') return '· delayed'
+  if (status === 'offline') return ''
+  return '· development'
+}
+
+function TelemetryStatusBadge({
+  status,
+  snap,
+  now,
+  pulse,
+}: {
+  status: TelemetryStatus
+  snap: TelemetrySnapshot | null
+  now: number
+  pulse: boolean
+}) {
+  const copy = telemetryStatusCopy[status]
+  const detail = telemetryStatusDetail(status, snap, now)
+  return (
+    <div
+      role="status"
+      className={`flex flex-col items-end gap-0.5 font-mono text-[10px] uppercase tracking-[0.18em] ${copy.toneClass}`}
+      aria-label={detail ? `Telemetry ${copy.label}. ${detail}` : `Telemetry ${copy.label}`}
+    >
+      <span className="flex items-center gap-1.5">
+        <span className={status === 'live' && pulse ? 'inline-block animate-pulse' : undefined} aria-hidden>
+          {copy.glyph}
+        </span>
+        {copy.label}
+      </span>
+      {detail && (
+        <span className="normal-case tracking-normal text-muted-foreground">{detail}</span>
+      )}
+    </div>
   )
 }
 
@@ -289,6 +362,7 @@ function MetricChart({
   animate,
   activeIndex,
   onHover,
+  status,
 }: {
   metric: MetricSnapshot
   range: TimeRangeId
@@ -298,6 +372,7 @@ function MetricChart({
   animate: boolean
   activeIndex: number
   onHover: (i: number | null) => void
+  status: TelemetryStatus
 }) {
   const w = 760
   const h = 220
@@ -338,7 +413,11 @@ function MetricChart({
         className="w-full touch-none"
         preserveAspectRatio="none"
         role="img"
-        aria-label={`${metric.id} — sample telemetry over the ${range} window. Not live data.`}
+        aria-label={
+          status === 'development'
+            ? `${metric.id} — development data over the ${range} window. Not a live measurement.`
+            : `${metric.id} — ${range} window. Status: ${status}.`
+        }
       >
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">

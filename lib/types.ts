@@ -134,6 +134,8 @@ export type {
   MetricId,
   TimeRangeId,
   TelemetryMode,
+  TelemetryFreshness,
+  TelemetryStatus,
   MetricDefinition,
   MetricPoint,
   MetricSnapshot,
