@@ -47,7 +47,7 @@ export type {
 
 export const profile = {
   name: 'Baris Batur',
-  role: 'Systems Developer · DevOps & Cloud',
+  role: 'DevOps Engineer · Cloud',
   region: 'Stavanger, Norway',
   coords: '58.97°N · 5.73°E',
   email: 'barisbatur12@gmail.com',
@@ -58,8 +58,8 @@ export const profile = {
   linkedin: 'linkedin.com/in/baris-batur',
   linkedinUrl: 'https://linkedin.com/in/baris-batur',
   summary:
-    'A systems developer working in DevOps and cloud, keeping platforms healthy across on-prem, cloud, and hybrid environments. Coding is the thing I genuinely enjoy — when I’m not at work I’m self-hosting my own services on servers I run at home, shipping side projects on GitHub, and pulling apart new tools just to see how they tick. That curiosity is what pulls me from fullstack apps to ML experiments to infrastructure. BSc in Computer Science from NTNU.',
-  status: 'Systems Developer · DFØ',
+    'A DevOps engineer working in cloud, keeping platforms healthy across on-prem, cloud, and hybrid environments. Coding is the thing I genuinely enjoy. When I’m not at work I’m self-hosting my own services on servers I run at home, shipping side projects on GitHub, and pulling apart new tools just to see how they tick. That curiosity is what pulls me from fullstack apps to ML experiments to infrastructure. BSc in Computer Science from NTNU.',
+  status: 'DevOps Engineer · DFØ',
   taglinePrefix: 'I make systems',
   taglineEmphasis: ['legible', 'reliable', 'simple'] as const,
   compiledLine: 'compiled in stavanger · I use Arch, btw',
@@ -68,11 +68,11 @@ export const profile = {
   terminalNow: 'building things · stavanger, norway',
   footerHeadline: "Let's build something.",
   footerPitch:
-    'Open to talking about DevOps and cloud, fullstack work, and applied ML — drop me a line.',
+    'Open to talking about DevOps and cloud, fullstack work, and applied ML. Drop me a line.',
   footerCredit: 'built like infrastructure software',
-  seoTitle: 'Baris Batur — Developer · DevOps & AI',
+  seoTitle: 'Baris Batur · DevOps Engineer',
   seoDescription:
-    'Developer from Trondheim building fullstack systems, CI/CD pipelines, and ML tooling — from Postgres and Docker to self-hosted LLMs. A portfolio designed like instrument software.',
+    'DevOps engineer from Stavanger building fullstack systems, CI/CD pipelines, and ML tooling, from Postgres and Docker to self-hosted LLMs. A portfolio designed like instrument software.',
 } satisfies Profile
 
 export const contactLinks: ContactLink[] = [
@@ -84,7 +84,7 @@ export const contactLinks: ContactLink[] = [
 // Honest, verifiable facts shown in the hero status panel — no trends implied.
 export const heroFacts: HeroFact[] = [
   { label: 'location', value: 'Stavanger, NO' },
-  { label: 'role', value: 'Systems Developer', sub: 'DFØ · DevOps/Cloud' },
+  { label: 'role', value: 'DevOps Engineer', sub: 'DFØ · Cloud' },
   { label: 'degree', value: 'BSc Computer Science', sub: 'NTNU · 2023–26' },
   { label: 'focus', value: 'DevOps · Cloud', sub: 'kubernetes' },
 ]
@@ -198,7 +198,7 @@ export const homelabNodes: HomelabNode[] = [
     plan: 'planned',
     tech: 'k3s / kubeadm',
     detail:
-      'A self-managed Kubernetes cluster — the layer I plan to run everything on, on hardware I own.',
+      'A self-managed Kubernetes cluster: the layer I plan to run everything on, on hardware I own.',
   },
   {
     id: 'store',
@@ -242,7 +242,7 @@ export const homelabNodes: HomelabNode[] = [
     tier: 'workload',
     plan: 'idea',
     tech: 'Nextcloud?',
-    detail: 'Personal file hosting / cloud storage — a maybe on the roadmap, not decided yet.',
+    detail: 'Personal file hosting / cloud storage. A maybe on the roadmap, not decided yet.',
   },
 ]
 
@@ -361,7 +361,7 @@ export const projects: Project[] = [
     feature: true,
     caseFile: {
       problem:
-        'A municipality receives far more applications than staff can read closely. Ranking candidates against a posting by hand is slow and inconsistent — but the data is sensitive, so it cannot be sent to a third-party AI API.',
+        'A municipality receives far more applications than staff can read closely. Ranking candidates against a posting by hand is slow and inconsistent, but the data is sensitive, so it cannot be sent to a third-party AI API.',
       built:
         'A fullstack system that semantically matches candidate profiles against job postings, running entirely on infrastructure the municipality controls. I owned the integration layer between the language model and the GUI.',
       approach: [
@@ -371,7 +371,7 @@ export const projects: Project[] = [
         'Bridge on-prem inference to cloud infrastructure over a narrow, explicit trust boundary.',
       ],
       outcome:
-        'Delivered a working matching tool that keeps sensitive hiring data on-premise while giving staff a legible ranked view over the model — data sovereignty without giving up a modern AI workflow.',
+        'Delivered a working matching tool that keeps sensitive hiring data on-premise while giving staff a legible ranked view over the model, with data sovereignty and without giving up a modern AI workflow.',
       outcomeKind: 'qual',
       architecture: [
         { step: 'candidate ui', note: 'staff submit profiles + postings' },
@@ -391,7 +391,7 @@ export const projects: Project[] = [
         },
         {
           choice: 'Hybrid on-prem + cloud',
-          rationale: 'The app lives in the cloud but inference stays local — the bridge reconciles the two safely.',
+          rationale: 'The app lives in the cloud but inference stays local. The bridge reconciles the two safely.',
         },
       ],
       challenges: [
@@ -417,7 +417,7 @@ export const projects: Project[] = [
     href: 'https://hackerspace-ntnu.no/',
     caseFile: {
       problem:
-        'A student organization needs a public website and internal tooling that many contributors can work on over time — and it has to actually run in production, not just on a laptop.',
+        'A student organization needs a public website and internal tooling that many contributors can work on over time, and it has to actually run in production, not just on a laptop.',
       built:
         'The organization website for DevOps Hackerspace at NTNU. I worked across the fullstack architecture and set up the production data layer and pipelines.',
       approach: [
@@ -515,7 +515,7 @@ export const projects: Project[] = [
     href: 'https://github.com/baris-batur/DiffusionModel',
     caseFile: {
       problem:
-        'I wanted to understand generative diffusion from the ground up — not by calling an API, but by implementing the noising and denoising process myself.',
+        'I wanted to understand generative diffusion from the ground up, not by calling an API, but by implementing the noising and denoising process myself.',
       built:
         'An experimental generative model based on Denoising Diffusion Probabilistic Models (DDPM) that synthesizes car images from pure noise.',
       approach: [
@@ -567,7 +567,7 @@ export const projects: Project[] = [
     playHref: 'https://emilorv.itch.io/pass-the-mask',
     caseFile: {
       problem:
-        'Global Game Jam gives you a theme and 48 hours to ship a playable game from nothing — the constraint is time, not scope.',
+        'Global Game Jam gives you a theme and 48 hours to ship a playable game from nothing. The constraint is time, not scope.',
       built:
         'A playable Unity game prototype built from scratch during the jam, with core gameplay logic implemented in C#.',
       approach: [
@@ -576,7 +576,7 @@ export const projects: Project[] = [
         'Implement gameplay logic in C# and iterate against playtests as they happen.',
       ],
       outcome:
-        'A finished, playable prototype — “Pass the Mask” — shipped and published to itch.io within the 48-hour window.',
+        'A finished, playable prototype of “Pass the Mask”, shipped and published to itch.io within the 48-hour window.',
       outcomeKind: 'qual',
       architecture: [
         { step: 'theme', note: '48-hour constraint' },
@@ -625,7 +625,7 @@ export const projects: Project[] = [
         'Treat the repo as living documentation, updated as the setup evolves.',
       ],
       outcome:
-        'A reproducible, version-controlled environment I daily-drive — and a reference I can trust when setting up a new machine.',
+        'A reproducible, version-controlled environment I daily-drive, and a reference I can trust when setting up a new machine.',
       outcomeKind: 'qual',
       architecture: [
         { step: 'omarchy base', note: 'arch distribution' },
@@ -660,12 +660,12 @@ export const experienceLevelColor: Record<ExperienceLevel, string> = {
 
 export const experience: Experience[] = [
   {
-    ts: 'Jul 2026 — now',
+    ts: 'Jul 2026 – now',
     org: 'DFØ · Norwegian Agency for Public and Financial Management',
-    role: 'Systems Developer (DevOps/Cloud) & Systems Administrator (HR/Cloud)',
+    role: 'DevOps Engineer (Cloud) & Systems Administrator (HR/Cloud)',
     level: 'WORK',
     lines: [
-      'Broad DevOps work keeping the platform behind the agency’s payroll service healthy — from cluster management and observability to secrets and automated deployments.',
+      'Broad DevOps work keeping the platform behind the agency’s payroll service healthy, from cluster management and observability to secrets and automated deployments.',
       'Still onboarding onto the full scope of the role, so this entry will be revised as it develops.',
     ],
   },
@@ -733,7 +733,7 @@ export const experience: Experience[] = [
     ],
   },
   {
-    ts: '2023 — 2026',
+    ts: '2023 – 2026',
     org: 'NTNU Trondheim',
     role: 'BSc Computer Science',
     level: 'EDU',

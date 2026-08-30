@@ -8,11 +8,11 @@ type Line = { cmd: string; out: string[] }
 
 const HELP = [
   'available commands:',
-  '  whoami     — who is this',
-  '  contact    — how to reach me',
-  '  stack      — working toolchain',
-  '  now        — what i am doing',
-  '  clear      — reset the buffer',
+  '  whoami     · who is this',
+  '  contact    · how to reach me',
+  '  stack      · working toolchain',
+  '  now        · what i am doing',
+  '  clear      · reset the buffer',
 ]
 
 function run(cmd: string): string[] {
@@ -31,7 +31,7 @@ function run(cmd: string): string[] {
     case '':
       return []
     default:
-      return [`command not found: ${c} — try 'help'`]
+      return [`command not found: ${c}. try 'help'`]
   }
 }
 

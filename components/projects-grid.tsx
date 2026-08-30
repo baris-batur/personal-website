@@ -20,7 +20,7 @@ export function ProjectsGrid() {
         title="Selected work"
         spec={`${projects.length} files`}
       >
-        Each project is a short case file — the problem, what I built, the technical approach, and
+        Each project is a short case file: the problem, what I built, the technical approach, and
         the outcome. Open one to read the full report.
       </SectionHeading>
 

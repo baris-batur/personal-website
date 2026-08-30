@@ -85,7 +85,7 @@ export function ServerTelemetry() {
         {telemetry.mode === 'development' ? (
           <>
             A monitoring panel I built for my own box, reading through a typed telemetry adapter. It
-            renders <span className="text-primary">development data</span> — generated locally, never
+            renders <span className="text-primary">development data</span>, generated locally, never
             a live measurement.
           </>
         ) : (
@@ -103,7 +103,7 @@ export function ServerTelemetry() {
             <div className="flex items-center gap-3 font-mono text-[11px] text-muted-foreground">
               <span className="text-primary">◢</span>
               <span className="text-foreground">
-                {viewSnap?.host.hostname ?? '—'}
+                {viewSnap?.host.hostname ?? '-'}
                 <span className="text-muted-foreground">@self-hosted</span>
               </span>
               <span className="hidden sm:inline text-border">│</span>
@@ -265,13 +265,13 @@ export function ServerTelemetry() {
               <span>
                 uptime{' '}
                 <span className="text-foreground normal-case tracking-normal">
-                  {viewSnap && showSeries ? formatUptime(viewSnap.host.uptimeSeconds) : '—'}
+                  {viewSnap && showSeries ? formatUptime(viewSnap.host.uptimeSeconds) : '-'}
                 </span>
               </span>
               <span>
                 load{' '}
                 <span className="text-foreground normal-case tracking-normal tabular-nums">
-                  {viewSnap && showSeries ? viewSnap.metrics.load.current.toFixed(2) : '—'}
+                  {viewSnap && showSeries ? viewSnap.metrics.load.current.toFixed(2) : '-'}
                 </span>
               </span>
             </div>
@@ -415,8 +415,8 @@ function MetricChart({
         role="img"
         aria-label={
           status === 'development'
-            ? `${metric.id} — development data over the ${range} window. Not a live measurement.`
-            : `${metric.id} — ${range} window. Status: ${status}.`
+            ? `${metric.id}: development data over the ${range} window. Not a live measurement.`
+            : `${metric.id}: ${range} window. Status: ${status}.`
         }
       >
         <defs>

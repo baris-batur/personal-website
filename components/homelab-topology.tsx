@@ -55,7 +55,7 @@ export function HomelabTopology() {
         title="The homelab I'm building"
         spec="hover to trace"
       >
-        A self-hosted Kubernetes cluster I&apos;m setting up on hardware I own — to run this site, a
+        A self-hosted Kubernetes cluster I&apos;m setting up on hardware I own, to run this site, a
         media server, and (maybe) file hosting, instead of leaning on managed cloud. Hover any node
         to trace how a request moves through it.{' '}
         <span className="text-signal-amber">Planned architecture, not yet in production.</span>
@@ -64,7 +64,7 @@ export function HomelabTopology() {
       <Reveal>
         <div className="plate bg-card/40">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            <span>fig.02 — homelab topology</span>
+            <span>fig.02 · homelab topology</span>
             <span className="text-signal-amber">planned · not live</span>
           </div>
 
@@ -165,7 +165,7 @@ export function HomelabTopology() {
                         transform={`translate(${n.x - NW / 2} ${n.y - NH / 2})`}
                         role="button"
                         tabIndex={0}
-                        aria-label={`${n.label} — ${planLabel[n.plan]}. ${n.detail}`}
+                        aria-label={`${n.label}: ${planLabel[n.plan]}. ${n.detail}`}
                         aria-pressed={pinned === n.id}
                         className="cursor-pointer outline-none"
                         opacity={dim ? 0.4 : 1}
@@ -296,7 +296,7 @@ export function HomelabTopology() {
                     </p>
                     <p className="mt-3">
                       Everything here is <span className="text-signal-amber">planned</span> unless a
-                      node is marked otherwise — this is the target, not the current state.
+                      node is marked otherwise. This is the target, not the current state.
                     </p>
                   </div>
                 )}

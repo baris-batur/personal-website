@@ -13,14 +13,14 @@ export function ObservabilityPanel() {
   return (
     <Section index="01" label="signals" field="grid">
       <SectionHeading kicker="interface study" title="Signals" spec="fig.01 · synthetic">
-        An observability interface I designed for this site — a small study in making telemetry
+        An observability interface I designed for this site. A small study in making telemetry
         readable. The series below are illustrative shapes, not measurements from any live system.
       </SectionHeading>
 
       <Reveal>
         <figure className="plate bg-card/40">
           <figcaption className="flex items-center justify-between border-b border-border px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            <span>fig.01 — observability specimen</span>
+            <span>fig.01 · observability specimen</span>
             <span className="text-signal-amber">synthetic data</span>
           </figcaption>
 
