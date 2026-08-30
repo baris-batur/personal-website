@@ -336,12 +336,44 @@ export const stack: Skill[] = [
   },
 ]
 
+<<<<<<< HEAD
 export const projectStatusColor: Record<ProjectStatus, string> = {
   work: 'var(--signal-green)',
   collab: 'var(--signal-cyan)',
   experimental: 'var(--signal-amber)',
   jam: 'var(--signal-amber)',
   personal: 'var(--foreground)',
+=======
+// A case file reads like a technical report: problem → build → approach →
+// outcome, with an architecture flow and design notes. Outcomes are
+// qualitative where no real metric exists — nothing here is invented.
+export type CaseFile = {
+  problem: string
+  built: string
+  approach: string[]
+  outcome: string
+  outcomeKind: 'quant' | 'qual'
+  // Named steps rendered as a small animated flow inside the report.
+  architecture: { step: string; note: string }[]
+  decisions: { choice: string; rationale: string }[]
+  challenges: string[]
+}
+
+export type Project = {
+  id: string
+  name: string
+  kind: string
+  blurb: string
+  meta: { k: string; v: string }[]
+  tags: string[]
+  status: 'work' | 'collab' | 'experimental' | 'personal' | 'jam'
+  href?: string
+  /** Optional playable build (e.g. itch.io). Shown beside href as “play the game”. */
+  playHref?: string
+  // Larger footprint in the asymmetric layout.
+  feature?: boolean
+  caseFile: CaseFile
+>>>>>>> f6a0772 (feat: add optional playHref to Project type and update CaseFileDossier for game links)
 }
 
 export const projects: Project[] = [
@@ -563,7 +595,8 @@ export const projects: Project[] = [
     ],
     tags: ['C#', 'Unity', '.NET', 'Git'],
     status: 'jam',
-    href: 'https://emilorv.itch.io/pass-the-mask',
+    href: 'https://github.com/sivertun/mask-ggj',
+    playHref: 'https://emilorv.itch.io/pass-the-mask',
     caseFile: {
       problem:
         'Global Game Jam gives you a theme and 48 hours to ship a playable game from nothing — the constraint is time, not scope.',
