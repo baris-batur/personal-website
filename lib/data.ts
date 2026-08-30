@@ -301,14 +301,14 @@ export const stack: Skill[] = [
   },
   {
     domain: 'data / ml',
-    primary: 'PyTorch',
-    tools: ['scikit-learn', 'Pandas', 'NumPy', 'Torchvision'],
+    primary: 'Pandas · NumPy',
+    tools: ['scikit-learn', 'Torchvision'],
     level: 'strong',
     context: 'projects',
   },
   {
     domain: 'ai / llm',
-    primary: 'Pandas · NumPy',
+    primary: 'PyTorch',
     tools: ['NorLLM', 'diffusion models', 'U-Net', 'scikit-learn'],
     level: 'familiar',
     context: 'projects',
