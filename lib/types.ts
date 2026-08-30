@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // Content schema — values live in lib/data.ts (edit that file).
-// Telemetry adapter types live in lib/telemetry.ts and are re-exported here.
+// Telemetry types live in lib/telemetry.ts (client-safe) and are re-exported here.
+// The sample generator and sanitizer are server-only.
 // ---------------------------------------------------------------------------
 
 export type Profile = {
@@ -111,6 +112,8 @@ export type Project = {
   tags: string[]
   status: ProjectStatus
   href?: string
+  /** GitHub (or other) source, when href is the live site. */
+  sourceHref?: string
   /** Optional playable build (e.g. itch.io). Shown beside href as “play the game”. */
   playHref?: string
   feature?: boolean

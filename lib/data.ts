@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Personal data layer — edit this file to update the whole site.
-// Schema: lib/types.ts. Telemetry adapter: lib/telemetry.ts.
+// Schema: lib/types.ts. Public telemetry: GET /api/telemetry via lib/telemetry-sanitizer.ts.
 // Facts are sourced from Baris Batur's CV, LinkedIn, and public GitHub profile.
 // No production metrics, uptime, traffic, or scale numbers are claimed here.
 // ---------------------------------------------------------------------------
@@ -416,6 +416,7 @@ export const projects: Project[] = [
     tags: ['Next.js', 'TypeScript', 'Tailwind', 'PostgreSQL', 'Docker'],
     status: 'work',
     href: 'https://hackerspace-ntnu.no/',
+    sourceHref: 'https://github.com/hackerspace-ntnu/website-next',
     caseFile: {
       problem:
         'A student organization needs a public website and internal tooling that many contributors can work on over time, and it has to actually run in production, not just on a laptop.',

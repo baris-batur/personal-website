@@ -19,12 +19,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: profile.seoTitle,
   description: profile.seoDescription,
-  generator: 'v0.app',
   icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/icon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '32x32' },
     ],
     apple: '/apple-icon.png',
   },
@@ -47,7 +46,9 @@ export default function RootLayout({
     >
       <body className="antialiased font-sans">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && process.env.DISABLE_ANALYTICS !== '1' && (
+          <Analytics />
+        )}
       </body>
     </html>
   )
