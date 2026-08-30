@@ -660,12 +660,12 @@ export const experienceLevelColor: Record<ExperienceLevel, string> = {
 
 export const experience: Experience[] = [
   {
-    ts: 'Jul 2026 – now',
+    ts: 'Jul 2026 — now',
     org: 'DFØ · Norwegian Agency for Public and Financial Management',
-    role: 'DevOps Engineer (Cloud) & Systems Administrator (HR/Cloud)',
+    role: 'Systems Developer (DevOps/Cloud) & Systems Administrator (HR/Cloud)',
     level: 'WORK',
     lines: [
-      'Broad DevOps work keeping the platform behind the agency’s payroll service healthy, from cluster management and observability to secrets and automated deployments.',
+      'Broad DevOps work keeping the platform behind the agency’s payroll service healthy — from cluster management and observability to secrets and automated deployments.',
       'Still onboarding onto the full scope of the role, so this entry will be revised as it develops.',
     ],
   },
