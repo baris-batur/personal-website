@@ -1,5 +1,6 @@
 import { getPublicSnapshot } from '@/lib/telemetry-sanitizer'
-import { isTimeRangeId } from '@/lib/telemetry'
+
+export const dynamic = 'force-dynamic'
 
 const WINDOW_MS = 60_000
 const MAX_HITS = 30
@@ -23,6 +24,7 @@ function allow(ip: string): boolean {
   }
   recent.push(now)
   hits.set(ip, recent)
+  if (hits.size > 10_000) hits.clear()
   return true
 }
 
@@ -42,17 +44,17 @@ export async function GET(req: Request) {
     return json({ error: 'rate limited' }, 429, { 'retry-after': '60' })
   }
 
-  const range = new URL(req.url).searchParams.get('range')
-  const result = await getPublicSnapshot(range)
+  try {
+    const range = new URL(req.url).searchParams.get('range')
+    const result = await getPublicSnapshot(range)
 
-  if (!result.ok) {
-    const message = result.status === 400 ? 'invalid range' : 'telemetry unavailable'
-    return json({ error: message }, result.status)
+    if (!result.ok) {
+      const message = result.status === 400 ? 'invalid range' : 'telemetry unavailable'
+      return json({ error: message }, result.status)
+    }
+
+    return json(result.snap, 200)
+  } catch {
+    return json({ error: 'telemetry unavailable' }, 503)
   }
-
-  return json(result.snap, 200)
-}
-
-export async function OPTIONS() {
-  return new Response(null, { status: 204 })
 }

@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
-  telemetry,
+  PUBLIC_ADAPTER,
+  fetchPublicSnapshot,
   metricDefs,
   timeRanges,
   formatMetric,
@@ -16,6 +17,7 @@ import {
   type MetricSnapshot,
   type TelemetrySnapshot,
   type TelemetryStatus,
+  type TelemetryMode,
 } from '@/lib/telemetry'
 import { Sparkline } from '@/components/charts'
 import { Section } from '@/components/section'
@@ -28,23 +30,31 @@ export function ServerTelemetry() {
   const [range, setRange] = useState<TimeRangeId>('24h')
   const [metricId, setMetricId] = useState<MetricId>('cpu')
   const [snap, setSnap] = useState<TelemetrySnapshot | null>(null)
+  const [sourceMode, setSourceMode] = useState<TelemetryMode>('development')
   const [fetchFailed, setFetchFailed] = useState(false)
   const [hover, setHover] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
+  const snapRef = useRef<TelemetrySnapshot | null>(null)
+
+  useEffect(() => {
+    snapRef.current = snap
+  }, [snap])
 
   useEffect(() => {
     let cancelled = false
-    telemetry.fetchSnapshot(range).then(
+    fetchPublicSnapshot(range).then(
       (s) => {
         if (cancelled) return
         setSnap(s)
+        setSourceMode(s.mode)
         setFetchFailed(false)
         setHover(null)
       },
       () => {
         if (cancelled) return
-        // Keep the last snapshot. Never substitute development data.
+        // Keep the last snapshot. Never substitute generated series.
         setFetchFailed(true)
+        if (!snapRef.current) setSourceMode('live')
       },
     )
     return () => {
@@ -54,17 +64,18 @@ export function ServerTelemetry() {
 
   const viewSnap = snap?.range === range ? snap : null
   const status = resolveTelemetryStatus({
-    sourceMode: telemetry.mode,
+    sourceMode,
     snap: viewSnap,
     fetchFailed,
     now,
   })
+  const adapter = viewSnap?.adapter ?? PUBLIC_ADAPTER
 
   useEffect(() => {
-    if (telemetry.mode !== 'live') return
+    if (sourceMode !== 'live') return
     const id = setInterval(() => setNow(Date.now()), 15_000)
     return () => clearInterval(id)
-  }, [])
+  }, [sourceMode])
 
   const def = metricDefs.find((d) => d.id === metricId)!
   const metric = viewSnap?.metrics[metricId] ?? null
@@ -73,7 +84,7 @@ export function ServerTelemetry() {
   const activePoint = metric?.points[activeIndex] ?? null
   const hovering = hover !== null
   const showSeries = status !== 'offline'
-  const provenance = provenanceLine(status)
+  const provenance = provenanceLine(status, adapter)
 
   return (
     <Section id="telemetry" index="04" label="telemetry" field="grid">
@@ -82,15 +93,15 @@ export function ServerTelemetry() {
         title="Server telemetry"
         spec={`fig.03 · ${status === 'development' ? 'development' : status}`}
       >
-        {telemetry.mode === 'development' ? (
+        {sourceMode === 'development' ? (
           <>
-            A monitoring panel I built for my own box, reading through a typed telemetry adapter. It
-            renders <span className="text-primary">development data</span>, generated locally, never
-            a live measurement.
+            A monitoring panel I built for my own box, reading through a public sanitizer. It
+            renders <span className="text-primary">development data</span>, produced on the server,
+            never a live measurement.
           </>
         ) : (
           <>
-            A monitoring panel I built for my own box, reading through a typed telemetry adapter.
+            A monitoring panel I built for my own box, reading through a public sanitizer.
             Freshness is labelled explicitly: live, delayed, or offline. A failed scrape never
             falls back to generated series.
           </>
@@ -106,12 +117,18 @@ export function ServerTelemetry() {
                 {viewSnap?.host.hostname ?? '-'}
                 <span className="text-muted-foreground">@self-hosted</span>
               </span>
-              <span className="hidden sm:inline text-border">│</span>
-              <span className="hidden sm:inline">
-                {viewSnap?.host.os ?? (status === 'offline' ? 'unavailable' : 'connecting…')}
-              </span>
-              <span className="hidden md:inline text-border">│</span>
-              <span className="hidden md:inline">{viewSnap?.host.region ?? ''}</span>
+              {viewSnap?.host.os ? (
+                <>
+                  <span className="hidden sm:inline text-border">│</span>
+                  <span className="hidden sm:inline">{viewSnap.host.os}</span>
+                </>
+              ) : null}
+              {viewSnap?.host.region ? (
+                <>
+                  <span className="hidden md:inline text-border">│</span>
+                  <span className="hidden md:inline">{viewSnap.host.region}</span>
+                </>
+              ) : null}
             </div>
 
             <TelemetryStatusBadge status={status} snap={viewSnap} now={now} pulse={inView} />
@@ -226,7 +243,7 @@ export function ServerTelemetry() {
                 />
               ) : (
                 <div className="flex h-[220px] items-center justify-center font-mono text-xs text-muted-foreground">
-                  {status === 'offline' ? 'telemetry unavailable' : 'connecting to telemetry adapter…'}
+                  {status === 'offline' ? 'telemetry unavailable' : 'connecting to sanitizer…'}
                 </div>
               )}
             </div>
@@ -293,11 +310,11 @@ export function ServerTelemetry() {
   )
 }
 
-function provenanceLine(status: TelemetryStatus): string {
+function provenanceLine(status: TelemetryStatus, adapter: string): string {
   if (status === 'offline') return 'telemetry unavailable'
-  if (status === 'development') return `development data · adapter: ${telemetry.sourceName}`
-  if (status === 'delayed') return `delayed · adapter: ${telemetry.sourceName}`
-  return `adapter: ${telemetry.sourceName}`
+  if (status === 'development') return `development data · adapter: ${adapter}`
+  if (status === 'delayed') return `delayed · adapter: ${adapter}`
+  return `adapter: ${adapter}`
 }
 
 function seriesKindLabel(status: TelemetryStatus, hovering: boolean): string {

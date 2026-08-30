@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // Content schema — values live in lib/data.ts (edit that file).
-// Telemetry adapter types live in lib/telemetry.ts and are re-exported here.
+// Telemetry types live in lib/telemetry.ts (client-safe) and are re-exported here.
+// The sample generator and sanitizer are server-only.
 // ---------------------------------------------------------------------------
 
 export type Profile = {

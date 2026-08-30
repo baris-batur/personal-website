@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { projectStatusColor, type Project } from '@/lib/data'
+import { isSafeExternalHref } from '@/lib/safe-href'
 import { ArrowUpRight } from '@/components/icons'
 
 export function CaseFileDossier({ project, onClose }: { project: Project; onClose: () => void }) {
@@ -188,17 +189,20 @@ function isGithub(href: string) {
 
 function dossierLinks(project: Project): { href: string; label: string }[] {
   const links: { href: string; label: string }[] = []
-  if (project.href && !isGithub(project.href)) {
+  if (project.href && !isGithub(project.href) && isSafeExternalHref(project.href)) {
     links.push({ href: project.href, label: 'visit site' })
   }
   const source =
     project.sourceHref ?? (project.href && isGithub(project.href) ? project.href : undefined)
-  if (source) links.push({ href: source, label: 'view source' })
-  if (project.playHref) links.push({ href: project.playHref, label: 'play the game' })
+  if (source && isSafeExternalHref(source)) links.push({ href: source, label: 'view source' })
+  if (project.playHref && isSafeExternalHref(project.playHref)) {
+    links.push({ href: project.playHref, label: 'play the game' })
+  }
   return links
 }
 
 function DossierLink({ href, children }: { href: string; children: React.ReactNode }) {
+  if (!isSafeExternalHref(href)) return null
   return (
     <a
       href={href}

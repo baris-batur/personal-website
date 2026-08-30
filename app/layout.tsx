@@ -19,7 +19,6 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: profile.seoTitle,
   description: profile.seoDescription,
-  generator: 'next.js',
   icons: {
     icon: [
       { url: '/icon.png', type: 'image/png' },
@@ -47,7 +46,9 @@ export default function RootLayout({
     >
       <body className="antialiased font-sans">
         {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && process.env.DISABLE_ANALYTICS !== '1' && (
+          <Analytics />
+        )}
       </body>
     </html>
   )

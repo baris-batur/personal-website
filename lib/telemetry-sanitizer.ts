@@ -1,13 +1,7 @@
 import 'server-only'
 
 import { buildDevelopmentSnapshot } from './telemetry-sample'
-import {
-  PUBLIC_ADAPTER,
-  PUBLIC_HOST,
-  isTimeRangeId,
-  type TelemetrySnapshot,
-  type TimeRangeId,
-} from './telemetry'
+import { isTimeRangeId, type TelemetrySnapshot, type TimeRangeId } from './telemetry'
 
 const CACHE_MS = 15_000
 const cache = new Map<TimeRangeId, { at: number; snap: TelemetrySnapshot }>()
@@ -40,17 +34,4 @@ export async function getPublicSnapshot(range: unknown): Promise<
   const snap = buildDevelopmentSnapshot(range, now)
   cache.set(range, { at: now, snap })
   return { ok: true, snap }
-}
-
-export function liveUnavailable(range: TimeRangeId): TelemetrySnapshot {
-  const generatedAt = Date.now()
-  return {
-    host: PUBLIC_HOST,
-    mode: 'live',
-    freshness: 'unavailable',
-    generatedAt,
-    range,
-    metrics: {} as TelemetrySnapshot['metrics'],
-    adapter: PUBLIC_ADAPTER,
-  }
 }

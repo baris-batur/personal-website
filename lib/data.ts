@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Personal data layer — edit this file to update the whole site.
-// Schema: lib/types.ts. Telemetry adapter: lib/telemetry.ts.
+// Schema: lib/types.ts. Public telemetry: GET /api/telemetry via lib/telemetry-sanitizer.ts.
 // Facts are sourced from Baris Batur's CV, LinkedIn, and public GitHub profile.
 // No production metrics, uptime, traffic, or scale numbers are claimed here.
 // ---------------------------------------------------------------------------

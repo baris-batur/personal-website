@@ -17,6 +17,7 @@ function liveSnap(overrides: Partial<TelemetrySnapshot> = {}): TelemetrySnapshot
     staleAfter: generatedAt + TELEMETRY_STALE_MS,
     range: '1h',
     metrics: {} as TelemetrySnapshot['metrics'],
+    adapter: 'sanitizer',
     ...overrides,
   }
 }

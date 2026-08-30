@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(import.meta.dirname),
+      'server-only': resolve(import.meta.dirname, 'test/server-only-stub.ts'),
     },
   },
 })

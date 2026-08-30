@@ -11,7 +11,7 @@ export type TimeRangeId = '1h' | '6h' | '24h' | '7d'
 export const TIME_RANGE_IDS: readonly TimeRangeId[] = ['1h', '6h', '24h', '7d']
 
 export function isTimeRangeId(v: unknown): v is TimeRangeId {
-  return v === '1h' || v === '6h' || v === '24h' || v === '7d'
+  return typeof v === 'string' && (TIME_RANGE_IDS as readonly string[]).includes(v)
 }
 
 export type TelemetryMode = 'development' | 'live'
@@ -138,6 +138,13 @@ export const PUBLIC_HOST: HostInfo = {
 
 export const PUBLIC_ADAPTER = 'sanitizer'
 
+/** Server-side contract. The browser never implements this. */
+export interface TelemetrySource {
+  readonly mode: TelemetryMode
+  readonly sourceName: string
+  fetchSnapshot(range: TimeRangeId, now?: number): Promise<TelemetrySnapshot>
+}
+
 export function formatMetric(def: MetricDefinition, v: number): string {
   const n = v.toFixed(def.decimals)
   return def.unit ? `${n}${def.unit === '%' ? '' : ' '}${def.unit}` : n
@@ -246,7 +253,7 @@ function asTelemetrySnapshot(body: unknown): TelemetrySnapshot | null {
   if (typeof h.hostname !== 'string' || typeof h.uptimeSeconds !== 'number') return null
   return {
     host: {
-      hostname: h.hostname,
+      hostname: h.hostname.slice(0, 32),
       os: typeof h.os === 'string' ? h.os : '',
       region: typeof h.region === 'string' ? h.region : '',
       uptimeSeconds: h.uptimeSeconds,

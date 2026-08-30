@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { profile, coreStack, contactLinks } from '@/lib/data'
+import { isSafeExternalHref } from '@/lib/safe-href'
 import { Copy, Check } from '@/components/icons'
 
 type Line = { cmd: string; out: string[] }
@@ -159,7 +160,7 @@ export function FooterTerminal() {
                   )}
                 </button>
                 {contactLinks
-                  .filter((l) => l.id !== 'email')
+                  .filter((l) => l.id !== 'email' && isSafeExternalHref(l.href))
                   .map((l) => (
                   <a
                     key={l.id}
