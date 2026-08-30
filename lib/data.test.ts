@@ -17,9 +17,17 @@ describe('content contracts', () => {
     expect(mask?.playHref).toBe('https://emilorv.itch.io/pass-the-mask')
   })
 
-  it('only uses playHref on projects that also have a source href', () => {
+  it('links Hackerspace to the live site and the public repo', () => {
+    const hs = projects.find((p) => p.id === 'PRJ-02')
+    expect(hs?.href).toBe('https://hackerspace-ntnu.no/')
+    expect(hs?.sourceHref).toBe('https://github.com/hackerspace-ntnu/website-next')
+  })
+
+  it('gives every public project a GitHub source except CV-Scanner', () => {
     for (const p of projects) {
-      if (p.playHref) expect(p.href).toBeTruthy()
+      if (p.id === 'PRJ-01') continue
+      const source = p.sourceHref ?? p.href
+      expect(source).toMatch(/github\.com/)
     }
   })
 

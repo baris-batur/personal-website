@@ -25,6 +25,7 @@ export function CaseFileDossier({ project, onClose }: { project: Project; onClos
   }, [onClose])
 
   const cf = project.caseFile
+  const links = dossierLinks(project)
 
   return (
     <div
@@ -80,20 +81,13 @@ export function CaseFileDossier({ project, onClose }: { project: Project; onClos
                 {project.name}
               </h2>
             </div>
-            {(project.href || project.playHref) && (
+            {links.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {project.href && (
-                  <DossierLink href={project.href}>
-                    {project.playHref
-                      ? 'view project'
-                      : project.href.includes('github')
-                        ? 'view source'
-                        : 'view project'}
+                {links.map((link) => (
+                  <DossierLink key={link.href} href={link.href}>
+                    {link.label}
                   </DossierLink>
-                )}
-                {project.playHref && (
-                  <DossierLink href={project.playHref}>play the game</DossierLink>
-                )}
+                ))}
               </div>
             )}
           </div>
@@ -186,6 +180,22 @@ export function CaseFileDossier({ project, onClose }: { project: Project; onClos
       </div>
     </div>
   )
+}
+
+function isGithub(href: string) {
+  return href.includes('github.com')
+}
+
+function dossierLinks(project: Project): { href: string; label: string }[] {
+  const links: { href: string; label: string }[] = []
+  if (project.href && !isGithub(project.href)) {
+    links.push({ href: project.href, label: 'visit site' })
+  }
+  const source =
+    project.sourceHref ?? (project.href && isGithub(project.href) ? project.href : undefined)
+  if (source) links.push({ href: source, label: 'view source' })
+  if (project.playHref) links.push({ href: project.playHref, label: 'play the game' })
+  return links
 }
 
 function DossierLink({ href, children }: { href: string; children: React.ReactNode }) {
