@@ -309,7 +309,7 @@ export const stack: Skill[] = [
   {
     domain: 'ai / llm',
     primary: 'PyTorch',
-    tools: ['Gemini', 'diffusion models', 'U-Net', 'scikit-learn'],
+    tools: ['NorLLM', 'diffusion models', 'U-Net', 'scikit-learn'],
     level: 'familiar',
     context: 'projects',
   },
@@ -350,54 +350,55 @@ export const projects: Project[] = [
     name: 'CV-Scanner',
     kind: 'trondheim kommune · fullstack',
     blurb:
-      'A system for semantic analysis and matching of candidate profiles against job postings, using the Gemini API for inference. I focused on the integration layer between the language model and the GUI.',
+      'A system for semantic analysis and matching of candidate profiles against job postings, built around a self-hosted NorLLM for privacy and data sovereignty. I focused on the integration layer between the language model and the GUI.',
     meta: [
       { k: 'year', v: '2026' },
       { k: 'role', v: 'developer' },
       { k: 'type', v: 'professional' },
     ],
-    tags: ['Gemini', 'TypeScript', 'React', 'PostgreSQL', 'Windows Server'],
+    tags: ['NorLLM', 'TypeScript', 'React', 'PostgreSQL', 'Windows Server'],
     status: 'work',
+    href: 'https://github.com/ingvildsandven/cv-screening-tool',
     feature: true,
     caseFile: {
       problem:
-        'A municipality receives far more applications than staff can read closely. Ranking candidates against a posting by hand is slow and inconsistent.',
+        'A municipality receives far more applications than staff can read closely. Ranking candidates against a posting by hand is slow and inconsistent, but the data is sensitive, so it cannot be sent to a third-party AI API.',
       built:
-        'A fullstack system that semantically matches candidate profiles against job postings. Inference runs through the Gemini API. I owned the integration layer between the language model and the GUI.',
+        'A fullstack system that semantically matches candidate profiles against job postings, running entirely on infrastructure the municipality controls. I owned the integration layer between the language model and the GUI.',
       approach: [
-        'Call the Gemini API for semantic matching instead of operating a self-hosted language model.',
+        'Self-host a Norwegian language model (NorLLM) so no candidate data ever leaves the premises.',
         'Model profiles and postings as clean relational rows in PostgreSQL for the matching engine to read.',
         'Expose inference through a stable REST contract so the frontend never depends on where the model runs.',
-        'Keep the application layer on municipal infrastructure, with Gemini as an explicit external dependency.',
+        'Bridge on-prem inference to cloud infrastructure over a narrow, explicit trust boundary.',
       ],
       outcome:
-        'Delivered a working matching tool that gives staff a legible ranked view over applications, with the model behind a stable API rather than inlined in the UI.',
+        'Delivered a working matching tool that keeps sensitive hiring data on-premise while giving staff a legible ranked view over the model, with data sovereignty and without giving up a modern AI workflow.',
       outcomeKind: 'qual',
       architecture: [
         { step: 'candidate ui', note: 'staff submit profiles + postings' },
         { step: 'api layer', note: 'stable REST contract' },
         { step: 'matching engine', note: 'semantic embeddings' },
-        { step: 'gemini api', note: 'hosted inference' },
+        { step: 'norllm', note: 'self-hosted inference' },
         { step: 'postgres', note: 'profiles + postings' },
       ],
       decisions: [
         {
-          choice: 'Gemini API over a self-hosted NorLLM',
-          rationale: 'A hosted model let us ship the matching pipeline without operating inference ourselves.',
+          choice: 'Self-hosted NorLLM over a hosted API',
+          rationale: 'Municipal hiring data is sensitive; sovereignty was a hard requirement, not a preference.',
         },
         {
           choice: 'Thin, stateless UI',
           rationale: 'Made the API the single source of truth for match logic and kept the client simple.',
         },
         {
-          choice: 'Model behind a REST contract',
-          rationale: 'The frontend should not care which provider answers; swapping the backend stays a server change.',
+          choice: 'Hybrid on-prem + cloud',
+          rationale: 'The app lives in the cloud but inference stays local. The bridge reconciles the two safely.',
         },
       ],
       challenges: [
-        'Turning raw model output into a ranking hiring staff can actually reason about.',
-        'Keeping the boundary between municipal infrastructure and the hosted API explicit.',
-        'Making the integration layer dependable enough that the GUI can treat matching as a service.',
+        'Making a self-hosted model behave like a dependable service the frontend can rely on.',
+        'Keeping the trust boundary between local inference and cloud infrastructure explicit and narrow.',
+        'Turning raw inference output into a ranking hiring staff can actually reason about.',
       ],
     },
   },
@@ -678,7 +679,7 @@ export const experience: Experience[] = [
     lines: [
       'Developed CV-Scanner, an LLM-based system that semantically analyzes CVs against job postings.',
       'Built as a bachelor’s thesis in consultative partnership with the HR department at Trondheim Kommune.',
-      'Used the Gemini API for inference, with the application layer on municipal infrastructure.',
+      'Self-hosted NorLLM for privacy and data sovereignty, with secure API integration to cloud infrastructure.',
     ],
   },
   {

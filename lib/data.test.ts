@@ -23,9 +23,13 @@ describe('content contracts', () => {
     expect(hs?.sourceHref).toBe('https://github.com/hackerspace-ntnu/website-next')
   })
 
-  it('gives every public project a GitHub source except CV-Scanner', () => {
+  it('links CV-Scanner to the public screening-tool repo', () => {
+    const cv = projects.find((p) => p.id === 'PRJ-01')
+    expect(cv?.href).toBe('https://github.com/ingvildsandven/cv-screening-tool')
+  })
+
+  it('gives every public project a GitHub source', () => {
     for (const p of projects) {
-      if (p.id === 'PRJ-01') continue
       const source = p.sourceHref ?? p.href
       expect(source).toMatch(/github\.com/)
     }

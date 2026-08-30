@@ -39,7 +39,6 @@ function contentSecurityPolicy() {
 }
 
 const nextConfig = {
-  output: 'standalone',
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   images: {
