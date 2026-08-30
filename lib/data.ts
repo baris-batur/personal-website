@@ -1,29 +1,88 @@
 // ---------------------------------------------------------------------------
 // Personal data layer — edit this file to update the whole site.
+// Schema: lib/types.ts. Telemetry adapter: lib/telemetry.ts.
 // Facts are sourced from Baris Batur's CV, LinkedIn, and public GitHub profile.
 // No production metrics, uptime, traffic, or scale numbers are claimed here.
 // ---------------------------------------------------------------------------
+
+import type {
+  Profile,
+  ContactLink,
+  HeroFact,
+  SystemNode,
+  HeroMetric,
+  HomelabTier,
+  HomelabPlan,
+  HomelabNode,
+  HomelabEdge,
+  Skill,
+  SkillLevel,
+  Project,
+  ProjectStatus,
+  Experience,
+  ExperienceLevel,
+  GaugeSpecimen,
+} from './types'
+
+export type {
+  Profile,
+  ContactLink,
+  HeroFact,
+  SystemNode,
+  HeroMetric,
+  HomelabTier,
+  HomelabPlan,
+  HomelabNode,
+  HomelabEdge,
+  Skill,
+  SkillLevel,
+  SkillContext,
+  Project,
+  ProjectStatus,
+  CaseFile,
+  Experience,
+  ExperienceLevel,
+  GaugeSpecimen,
+} from './types'
 
 export const profile = {
   name: 'Baris Batur',
   role: 'Systems Developer · DevOps & Cloud',
   region: 'Stavanger, Norway',
-  handle: 'barisbatur12@gmail.com',
+  coords: '58.97°N · 5.73°E',
+  email: 'barisbatur12@gmail.com',
+  slug: 'baris-batur',
+  identityLabel: 'baris',
   github: 'github.com/baris-batur',
   githubUrl: 'https://github.com/baris-batur',
   linkedin: 'linkedin.com/in/baris-batur',
   linkedinUrl: 'https://linkedin.com/in/baris-batur',
   summary:
     'A systems developer working in DevOps and cloud, keeping platforms healthy across on-prem, cloud, and hybrid environments. Coding is the thing I genuinely enjoy — when I’m not at work I’m self-hosting my own services on servers I run at home, shipping side projects on GitHub, and pulling apart new tools just to see how they tick. That curiosity is what pulls me from fullstack apps to ML experiments to infrastructure. BSc in Computer Science from NTNU.',
-  // Current role — factual, from LinkedIn.
   status: 'Systems Developer · DFØ',
-  coords: '58.97°N · 5.73°E',
-}
+  taglinePrefix: 'I make systems',
+  taglineEmphasis: ['legible', 'reliable', 'simple'] as const,
+  compiledLine: 'compiled in stavanger · I use Arch, btw',
+  edition: 'ed. 2026 · rev.03',
+  terminalPrompt: 'baris@arch:~$ session',
+  terminalNow: 'building things · stavanger, norway',
+  footerHeadline: "Let's build something.",
+  footerPitch:
+    'Open to talking about DevOps and cloud, fullstack work, and applied ML — drop me a line.',
+  footerCredit: 'built like infrastructure software',
+  seoTitle: 'Baris Batur — Developer · DevOps & AI',
+  seoDescription:
+    'Developer from Trondheim building fullstack systems, CI/CD pipelines, and ML tooling — from Postgres and Docker to self-hosted LLMs. A portfolio designed like instrument software.',
+} satisfies Profile
+
+export const contactLinks: ContactLink[] = [
+  { id: 'email', label: 'email', value: profile.email, href: `mailto:${profile.email}` },
+  { id: 'github', label: 'github', value: profile.github, href: profile.githubUrl },
+  { id: 'linkedin', label: 'linkedin', value: profile.linkedin, href: profile.linkedinUrl },
+]
 
 // Honest, verifiable facts shown in the hero status panel — no trends implied.
-export type Fact = { label: string; value: string; sub?: string }
-
-export const heroFacts: Fact[] = [
+export const heroFacts: HeroFact[] = [
   { label: 'location', value: 'Stavanger, NO' },
   { label: 'role', value: 'Systems Developer', sub: 'DFØ · DevOps/Cloud' },
   { label: 'degree', value: 'BSc Computer Science', sub: 'NTNU · 2023–26' },
@@ -32,7 +91,6 @@ export const heroFacts: Fact[] = [
 
 // Hero "control plane" — the systems the identity node connects to.
 // Order defines placement around the constellation. Detail lines are factual.
-export type SystemNode = { id: string; label: string; detail: string }
 export const systemNodes: SystemNode[] = [
   { id: 'devops', label: 'devops', detail: 'ci/cd · docker · kubernetes' },
   { id: 'ai', label: 'ai / ml', detail: 'pandas · numpy · llms' },
@@ -42,7 +100,6 @@ export const systemNodes: SystemNode[] = [
 ]
 
 // Countable, honest metrics for the hero instrument (they count up on view).
-export type HeroMetric = { value: number; label: string; note: string }
 export const heroMetrics: HeroMetric[] = [
   { value: 13, label: 'public repos', note: 'github' },
   { value: 8, label: 'core tools', note: 'daily driver' },
@@ -50,7 +107,7 @@ export const heroMetrics: HeroMetric[] = [
 ]
 
 // Core stack chips for the hero panel footer.
-export const coreStack = [
+export const coreStack: string[] = [
   'python',
   'typescript',
   'react',
@@ -68,28 +125,32 @@ export const coreStack = [
 // system — every node carries an honest `plan` status. Edit freely as the
 // real build progresses (e.g. flip a node's plan to 'live').
 // ---------------------------------------------------------------------------
-export type HomelabTier = 'edge' | 'control' | 'workload' | 'storage'
-export type HomelabPlan = 'planned' | 'idea' | 'external' | 'live'
-
-export type HomelabNode = {
-  id: string
-  label: string
-  sub: string
-  x: number
-  y: number
-  tier: HomelabTier
-  plan: HomelabPlan
-  tech: string
-  detail: string
-}
-
-export type HomelabEdge = { from: string; to: string; label: string }
-
 export const homelabTierLabels: Record<HomelabTier, string> = {
   edge: 'edge · ingress',
   control: 'control plane',
   workload: 'workloads',
   storage: 'storage',
+}
+
+export const homelabTierColor: Record<HomelabTier, string> = {
+  edge: 'var(--signal-cyan)',
+  control: 'var(--signal-amber)',
+  workload: 'var(--signal-green)',
+  storage: 'var(--foreground)',
+}
+
+export const homelabPlanColor: Record<HomelabPlan, string> = {
+  planned: 'var(--signal-amber)',
+  idea: 'var(--muted-foreground)',
+  external: 'var(--signal-cyan)',
+  live: 'var(--signal-green)',
+}
+
+export const homelabPlanLabel: Record<HomelabPlan, string> = {
+  planned: 'planned',
+  idea: 'idea · maybe',
+  external: 'external',
+  live: 'live',
 }
 
 export const homelabNodes: HomelabNode[] = [
@@ -197,7 +258,7 @@ export const homelabEdges: HomelabEdge[] = [
 ]
 
 // Playful, factual ticker items.
-export const tickerItems = [
+export const tickerItems: string[] = [
   'based=stavanger',
   'distro=arch',
   'edu=ntnu compsci',
@@ -215,19 +276,15 @@ export const tickerItems = [
   'spoken=no·en·jp',
 ]
 
-export type Level = 'core' | 'strong' | 'familiar' | 'learning'
-export type Context = 'work' | 'projects' | 'study' | 'personal'
-
-export type StackRow = {
-  domain: string
-  primary: string
-  tools: string[]
-  level: Level
-  context: Context
+export const skillLevelBars: Record<SkillLevel, number> = {
+  core: 4,
+  strong: 3,
+  familiar: 2,
+  learning: 1,
 }
 
 // Self-assessed familiarity, grounded in the CV — qualitative, not a metric.
-export const stack: StackRow[] = [
+export const stack: Skill[] = [
   {
     domain: 'languages',
     primary: 'Python · TypeScript',
@@ -279,33 +336,12 @@ export const stack: StackRow[] = [
   },
 ]
 
-// A case file reads like a technical report: problem → build → approach →
-// outcome, with an architecture flow and design notes. Outcomes are
-// qualitative where no real metric exists — nothing here is invented.
-export type CaseFile = {
-  problem: string
-  built: string
-  approach: string[]
-  outcome: string
-  outcomeKind: 'quant' | 'qual'
-  // Named steps rendered as a small animated flow inside the report.
-  architecture: { step: string; note: string }[]
-  decisions: { choice: string; rationale: string }[]
-  challenges: string[]
-}
-
-export type Project = {
-  id: string
-  name: string
-  kind: string
-  blurb: string
-  meta: { k: string; v: string }[]
-  tags: string[]
-  status: 'work' | 'collab' | 'experimental' | 'personal' | 'jam'
-  href?: string
-  // Larger footprint in the asymmetric layout.
-  feature?: boolean
-  caseFile: CaseFile
+export const projectStatusColor: Record<ProjectStatus, string> = {
+  work: 'var(--signal-green)',
+  collab: 'var(--signal-cyan)',
+  experimental: 'var(--signal-amber)',
+  jam: 'var(--signal-amber)',
+  personal: 'var(--foreground)',
 }
 
 export const projects: Project[] = [
@@ -613,17 +649,15 @@ export const projects: Project[] = [
   },
 ]
 
-export type LogLevel = 'WORK' | 'AI' | 'JAM' | 'SALES' | 'EDU'
-
-export type LogEntry = {
-  ts: string
-  org: string
-  role: string
-  level: LogLevel
-  lines: string[]
+export const experienceLevelColor: Record<ExperienceLevel, string> = {
+  WORK: 'var(--signal-green)',
+  AI: 'var(--signal-cyan)',
+  JAM: 'var(--signal-amber)',
+  SALES: 'var(--muted-foreground)',
+  EDU: 'var(--foreground)',
 }
 
-export const timeline: LogEntry[] = [
+export const experience: Experience[] = [
   {
     ts: 'Jul 2026 — now',
     org: 'DFØ · Norwegian Agency for Public and Financial Management',
@@ -719,7 +753,7 @@ export const trafficSeries = [
 ]
 
 // Generic gauge specimens for the interface study — not real SLOs.
-export const gauges = [
+export const gauges: GaugeSpecimen[] = [
   { name: 'gauge · alpha', value: 62 },
   { name: 'gauge · beta', value: 78 },
   { name: 'gauge · gamma', value: 41 },

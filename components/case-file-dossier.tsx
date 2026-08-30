@@ -1,16 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { Project } from '@/lib/data'
+import { projectStatusColor, type Project } from '@/lib/data'
 import { ArrowUpRight } from '@/components/icons'
-
-const statusTone: Record<string, string> = {
-  work: 'var(--signal-green)',
-  collab: 'var(--signal-cyan)',
-  experimental: 'var(--signal-amber)',
-  jam: 'var(--signal-amber)',
-  personal: 'var(--foreground)',
-}
 
 export function CaseFileDossier({ project, onClose }: { project: Project; onClose: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null)
@@ -58,7 +50,7 @@ export function CaseFileDossier({ project, onClose }: { project: Project; onClos
             <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               <span
                 className="h-1.5 w-1.5 rounded-full"
-                style={{ background: statusTone[project.status] }}
+                style={{ background: projectStatusColor[project.status] }}
               />
               {project.status}
             </span>

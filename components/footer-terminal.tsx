@@ -1,16 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { profile, coreStack } from '@/lib/data'
+import { profile, coreStack, contactLinks } from '@/lib/data'
 import { Copy, Check } from '@/components/icons'
 
 type Line = { cmd: string; out: string[] }
-
-const links = [
-  { k: 'email', v: profile.handle, href: `mailto:${profile.handle}` },
-  { k: 'github', v: profile.github, href: profile.githubUrl },
-  { k: 'linkedin', v: profile.linkedin, href: profile.linkedinUrl },
-]
 
 const HELP = [
   'available commands:',
@@ -29,11 +23,11 @@ function run(cmd: string): string[] {
     case 'whoami':
       return [`${profile.name} · ${profile.role}`, profile.summary]
     case 'contact':
-      return links.map((l) => `${l.k.padEnd(10)} ${l.v}`)
+      return contactLinks.map((l) => `${l.label.padEnd(10)} ${l.value}`)
     case 'stack':
       return [coreStack.join(' · ')]
     case 'now':
-      return [profile.status, 'building things · stavanger, norway']
+      return [profile.status, profile.terminalNow]
     case '':
       return []
     default:
@@ -67,7 +61,7 @@ export function FooterTerminal() {
 
   const copyEmail = async () => {
     try {
-      await navigator.clipboard.writeText(profile.handle)
+      await navigator.clipboard.writeText(profile.email)
       setCopied(true)
       setTimeout(() => setCopied(false), 1600)
     } catch {
@@ -93,7 +87,7 @@ export function FooterTerminal() {
                 <span className="h-2.5 w-2.5 rounded-full bg-signal-amber/70" />
                 <span className="h-2.5 w-2.5 rounded-full bg-signal-green/70" />
                 <span className="ml-2 font-mono text-xs text-muted-foreground">
-                  baris@arch:~$ session
+                  {profile.terminalPrompt}
                 </span>
               </div>
 
@@ -145,11 +139,10 @@ export function FooterTerminal() {
             <div className="flex h-full flex-col justify-between rounded-lg border border-border bg-card/40 p-6">
               <div>
                 <h2 className="text-balance text-3xl font-medium tracking-tight">
-                  Let&apos;s build something.
+                  {profile.footerHeadline}
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {profile.status}. Open to talking about DevOps and cloud, fullstack work, and
-                  applied ML — drop me a line.
+                  {profile.status}. {profile.footerPitch}
                 </p>
               </div>
 
@@ -158,24 +151,26 @@ export function FooterTerminal() {
                   onClick={copyEmail}
                   className="group flex w-full items-center justify-between rounded border border-border px-3 py-2.5 text-left transition-colors hover:border-primary"
                 >
-                  <span className="font-mono text-sm text-foreground">{profile.handle}</span>
+                  <span className="font-mono text-sm text-foreground">{profile.email}</span>
                   {copied ? (
                     <Check className="text-signal-green" width={15} height={15} />
                   ) : (
                     <Copy className="text-muted-foreground group-hover:text-primary" width={15} height={15} />
                   )}
                 </button>
-                {links.slice(1).map((l) => (
+                {contactLinks
+                  .filter((l) => l.id !== 'email')
+                  .map((l) => (
                   <a
-                    key={l.k}
+                    key={l.id}
                     href={l.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex w-full items-center justify-between rounded border border-border px-3 py-2.5 font-mono text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                   >
-                    <span>{l.v}</span>
+                    <span>{l.value}</span>
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 group-hover:text-primary">
-                      {l.k}
+                      {l.label}
                     </span>
                   </a>
                 ))}
@@ -186,7 +181,7 @@ export function FooterTerminal() {
 
         <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 font-mono text-[11px] text-muted-foreground sm:flex-row sm:items-center">
           <span>
-            © {new Date().getFullYear()} {profile.name} · built like infrastructure software
+            © {new Date().getFullYear()} {profile.name} · {profile.footerCredit}
           </span>
           <span className="flex items-center gap-2">
             <span className="status-dot h-1.5 w-1.5 rounded-full bg-signal-green" />

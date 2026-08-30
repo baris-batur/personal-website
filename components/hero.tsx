@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   profile,
   heroFacts,
@@ -165,7 +165,7 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
           viewBox={`0 0 ${VBW} ${VBH}`}
           className="relative block w-full"
           role="img"
-          aria-label="Interactive map linking Baris to his engineering domains"
+          aria-label={`Interactive map linking ${profile.name.split(' ')[0]} to his engineering domains`}
         >
           {/* static links */}
           {base.map((node) => {
@@ -288,7 +288,7 @@ function ControlPlane({ reduced }: { reduced: boolean }) {
               style={{ fontSize: 9, letterSpacing: 0.6 }}
               fill="var(--foreground)"
             >
-              baris
+              {profile.identityLabel}
             </text>
           </g>
         </svg>
@@ -357,7 +357,7 @@ export function Hero() {
           <span className="flex items-center gap-2">
             <span className="text-primary">◢</span> engineering control plane
           </span>
-          <span className="hidden sm:inline">ed. 2026 · rev.03</span>
+          <span className="hidden sm:inline">{profile.edition}</span>
           <span className="tabular-nums">{profile.coords}</span>
         </div>
       </div>
@@ -376,9 +376,14 @@ export function Hero() {
           </h1>
 
           <p className="reveal in mt-6 max-w-xl text-pretty text-xl leading-tight text-muted-foreground sm:text-2xl">
-            I make systems <span className="text-foreground">legible</span>,{' '}
-            <span className="text-foreground">reliable</span>, and{' '}
-            <span className="text-foreground">simple</span>.
+            {profile.taglinePrefix}{' '}
+            {profile.taglineEmphasis.map((word, i, words) => (
+              <Fragment key={word}>
+                {i === 0 ? '' : i === words.length - 1 ? ', and ' : ', '}
+                <span className="text-foreground">{word}</span>
+              </Fragment>
+            ))}
+            .
           </p>
 
           {/* compact monospace technical metadata */}
@@ -412,7 +417,7 @@ export function Hero() {
               href="#log"
               className="inline-flex items-center gap-2 rounded border border-border px-4 py-2.5 font-mono text-sm text-foreground transition-colors hover:border-primary hover:text-primary"
             >
-              {profile.handle}
+              {profile.email}
             </a>
           </div>
         </div>
@@ -459,7 +464,7 @@ export function Hero() {
             </div>
 
             <div className="border-t border-border px-4 py-2.5 font-mono text-[10px] text-muted-foreground">
-              <span className="text-primary">$</span> compiled in stavanger · I use Arch, btw
+              <span className="text-primary">$</span> {profile.compiledLine}
             </div>
           </div>
         </div>

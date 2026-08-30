@@ -1,26 +1,18 @@
-import { timeline } from '@/lib/data'
+import { experience, experienceLevelColor } from '@/lib/data'
 import { Section } from '@/components/section'
 import { SectionHeading } from '@/components/section-heading'
 import { Reveal } from '@/components/reveal'
 
-const levelTone: Record<string, string> = {
-  WORK: 'var(--signal-green)',
-  AI: 'var(--signal-cyan)',
-  JAM: 'var(--signal-amber)',
-  SALES: 'var(--muted-foreground)',
-  EDU: 'var(--foreground)',
-}
-
 export function ExperienceLog() {
   return (
     <Section index="06" label="log">
-      <SectionHeading kicker="history" title="Changelog" spec={`${timeline.length} commits`}>
+      <SectionHeading kicker="history" title="Changelog" spec={`${experience.length} commits`}>
         A reverse-chronological log of where I&apos;ve studied, worked, and shipped. Read it like a
         git history of the last few years.
       </SectionHeading>
 
       <div>
-        {timeline.map((entry, i) => (
+        {experience.map((entry, i) => (
           <Reveal key={entry.org + entry.ts} delay={i * 50} as="div">
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-[10rem_1fr]">
               {/* timestamp + level */}
@@ -30,11 +22,11 @@ export function ExperienceLog() {
                 </div>
                 <div
                   className="mt-2 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider"
-                  style={{ color: levelTone[entry.level] }}
+                  style={{ color: experienceLevelColor[entry.level] }}
                 >
                   <span
                     className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: levelTone[entry.level] }}
+                    style={{ background: experienceLevelColor[entry.level] }}
                   />
                   {entry.level}
                 </div>
@@ -44,7 +36,7 @@ export function ExperienceLog() {
               <div className="relative border-border pb-10 md:border-l md:pl-8 md:pt-5">
                 <span
                   className="absolute left-0 top-6 hidden h-2 w-2 -translate-x-1/2 rounded-full ring-4 ring-background md:block"
-                  style={{ background: levelTone[entry.level] }}
+                  style={{ background: experienceLevelColor[entry.level] }}
                   aria-hidden
                 />
                 <div className="flex flex-wrap items-baseline gap-x-3">
