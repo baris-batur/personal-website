@@ -111,8 +111,6 @@ export type Project = {
   tags: string[]
   status: ProjectStatus
   href?: string
-  /** GitHub (or other) source, when href is the live site. */
-  sourceHref?: string
   /** Optional playable build (e.g. itch.io). Shown beside href as “play the game”. */
   playHref?: string
   feature?: boolean
