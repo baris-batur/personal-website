@@ -667,7 +667,7 @@ export const experience: Experience[] = [
     role: 'Systems Developer (DevOps/Cloud) & Systems Administrator (HR/Cloud)',
     level: 'WORK',
     lines: [
-      'Broad DevOps work keeping the platform behind the agency’s payroll service healthy — from cluster management and observability to secrets and automated deployments.',
+      'Broad DevOps work keeping the platform behind the agency’s payroll service healthy. Tasks ranging from cluster management and observability to secrets and automated deployments.',
       'Still onboarding onto the full scope of the role, so this entry will be revised as it develops.',
     ],
   },
