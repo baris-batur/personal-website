@@ -330,7 +330,7 @@ export const stack: Skill[] = [
   {
     domain: 'tooling',
     primary: 'Git · Linux',
-    tools: ['Arch', 'omarchy', 'Bash'],
+    tools: ['Arch', 'Bash'],
     level: 'core',
     context: 'personal',
   },
@@ -607,22 +607,21 @@ export const projects: Project[] = [
     name: 'personal-linux-config',
     kind: 'personal · dotfiles',
     blurb:
-      'My custom Arch Linux configuration, built on top of the omarchy distribution. A living record of a setup I actually daily-drive. (I use Arch, btw.)',
+      'My custom Arch Linux configuration. A living record of a setup I actually daily-drive. (I use Arch, btw.)',
     meta: [
       { k: 'year', v: '2025' },
       { k: 'os', v: 'arch' },
       { k: 'type', v: 'personal' },
     ],
-    tags: ['Linux', 'Arch', 'Bash', 'omarchy'],
+    tags: ['Linux', 'Arch', 'Bash'],
     status: 'personal',
     href: 'https://github.com/baris-batur/personal-linux-config',
     caseFile: {
       problem:
         'A daily-driver development environment is worth reproducing. Rebuilding it from memory on a new machine is error-prone and slow.',
       built:
-        'My custom Arch Linux configuration, layered on top of the omarchy distribution and version-controlled as a living record of a setup I actually use every day.',
+        'My custom Arch Linux configuration, version-controlled as a living record of a setup I actually use every day.',
       approach: [
-        'Base the setup on omarchy, then layer personal configuration on top.',
         'Keep dotfiles and Bash scripts in version control as the source of truth.',
         'Treat the repo as living documentation, updated as the setup evolves.',
       ],
@@ -630,16 +629,12 @@ export const projects: Project[] = [
         'A reproducible, version-controlled environment I daily-drive, and a reference I can trust when setting up a new machine.',
       outcomeKind: 'qual',
       architecture: [
-        { step: 'omarchy base', note: 'arch distribution' },
+        { step: 'arch base', note: 'linux distribution' },
         { step: 'dotfiles', note: 'version-controlled' },
         { step: 'bash scripts', note: 'setup automation' },
         { step: 'daily driver', note: 'the real system' },
       ],
       decisions: [
-        {
-          choice: 'Build on omarchy',
-          rationale: 'Start from a sane base instead of assembling everything from zero.',
-        },
         {
           choice: 'Everything in git',
           rationale: 'A config that isn’t version-controlled isn’t reproducible.',
